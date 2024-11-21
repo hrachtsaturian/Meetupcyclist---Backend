@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 30
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 90
+      },
+      "date": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "location": {
+        "type": "string",
+        "description": "A human-readable address for the location."
+      }
+    },
+    "additionalProperties": false,
+    "required": []
+  }
+  
