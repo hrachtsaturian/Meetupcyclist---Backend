@@ -53,11 +53,9 @@ class Group {
     return group;
   }
 
-  /**
+  /** Return array of groups.
    *
-   * Returns { id, name, description, createdBy, createdAt }
-   *
-   * Throws NotFoundError if group not found.
+   * Returns data: [ {id, name, description, createdBy, createdAt}, ...]
    **/
   static async getAll() {
     const groupRes = await db.query(`SELECT ${groupPropsSqlQuery} FROM groups`);

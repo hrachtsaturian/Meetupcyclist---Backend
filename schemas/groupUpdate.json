@@ -14,6 +14,12 @@
       }
     },
     "additionalProperties": false,
-    "required": []
+    "required": [],
+    "examples": [
+      {
+        "name": "Offroad Adventure",
+        "description": "Explore rugged trails and enjoy breathtaking views."
+      }
+    ]
   }
   

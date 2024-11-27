@@ -102,7 +102,7 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
  **/
 router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
-    const event = await Event.get(req.params.id);
+    const event = await Group.get(req.params.id);
 
     if (event.createdBy?.toString() !== res.locals.user.id.toString()) {
       throw new UnauthorizedError();
@@ -110,7 +110,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
 
     await Group.delete(req.params.id);
   
-    return res.status(204);
+    return res.status(204).send();
   } catch (err) {
     return next(err);
   }

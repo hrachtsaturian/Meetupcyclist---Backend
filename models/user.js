@@ -113,6 +113,10 @@ class User {
     return user;
   }
 
+    /** Return array of users.
+   *
+   * Returns data: [ {id, first_name, last_name, email, password, bio, pfp_url}, ...]
+   **/
   static async getAll() {
     const userRes = await db.query(
       `SELECT ${userPropsSqlQuery} FROM users`,

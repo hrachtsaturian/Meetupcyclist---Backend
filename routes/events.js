@@ -4,13 +4,18 @@
 
 const express = require("express");
 const router = new express.Router();
-const { BadRequestError, UnauthorizedError } = require("../expressError");
+const {
+  BadRequestError,
+  UnauthorizedError,
+  NotFoundError,
+} = require("../expressError");
 const jsonschema = require("jsonschema");
 
 const Event = require("../models/event");
 const eventCreateSchema = require("../schemas/eventCreate.json");
 const eventUpdateSchema = require("../schemas/eventUpdate.json");
 const { ensureLoggedIn } = require("../middleware/auth");
+const EventFavorite = require("../models/eventFavorite");
 
 /**
  * POST / :  { title, description, date, location } => { event }
@@ -28,7 +33,13 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
     }
 
     const { title, description, date, location } = req.body;
-    const event = await Event.create({ title, description, date, location, createdBy: res.locals.user.id });
+    const event = await Event.create({
+      title,
+      description,
+      date,
+      location,
+      createdBy: res.locals.user.id,
+    });
     return res.json({ data: event });
   } catch (err) {
     return next(err);
@@ -44,7 +55,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  **/
 router.get("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
-    const event = await Event.get(req.params.id);
+    const event = await Event.get(req.params.id, res.locals.user.id);
     return res.json({ data: event });
   } catch (err) {
     return next(err);
@@ -57,11 +68,26 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  * - Authorization required: logged in
  *
  * @returns { id, title, description, date, location, createdBy, createdAt }
+ * 
+// filters: - showFavorites (returns only the events which are in Favorites)
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
+  // filters for query
+  const { showFavorites } = req.query;
+
   try {
-    const event = await Event.getAll();
-    return res.json({ data: event });
+    // fetching all the events
+    const events = await Event.getAll(res.locals.user.id);
+    
+    // showFavorites filter
+    let filteredEvents = events;
+    if (showFavorites === "true") {
+      filteredEvents = events.filter(
+        (event) =>
+          event.isFavorite === true && event.userId === res.locals.user.id
+      );
+    }
+    return res.json({ data: filteredEvents });
   } catch (err) {
     return next(err);
   }
@@ -80,14 +106,24 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
  **/
 router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
+    const event = await Event.get(req.params.id);
+
+    if (!event) {
+      throw new NotFoundError();
+    }
+
+    if (event.createdBy !== res.locals.user.id) {
+      throw new UnauthorizedError();
+    }
+
     const validator = jsonschema.validate(req.body, eventUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map((e) => e.stack);
       throw new BadRequestError(errs);
     }
 
-    const event = await Event.update(req.params.id, req.body);
-    return res.json({ data: event });
+    const updatedEvent = await Event.update(req.params.id, req.body);
+    return res.json({ data: updatedEvent });
   } catch (err) {
     return next(err);
   }
@@ -109,11 +145,54 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
     }
 
     await Event.delete(req.params.id);
-  
-    return res.status(204);
+
+    return res.status(204).send();
   } catch (err) {
     return next(err);
   }
 });
 
+/**
+ * POST /[id]/favorite  Add event to favorites with data
+ *
+ *  - Authorization required: logged in
+ *
+ *  * @returns { userId, eventId, createdAt }
+ **/
+router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const event = await Event.get(req.params.id, res.locals.user.id);
+
+    if (!event) {
+      throw new NotFoundError();
+    }
+
+    const favorite = await EventFavorite.add(res.locals.user.id, req.params.id);
+    return res.json({ data: favorite });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/**
+ * DELETE /[id]/favorite  Remove event from favorites
+ *
+ * - Authorization required: logged in
+ *
+ *
+ **/
+router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const event = await Event.get(req.params.id, res.locals.user.id);
+
+    if (!event) {
+      throw new NotFoundError();
+    }
+
+    await EventFavorite.remove(res.locals.user.id, req.params.id);
+    return res.status(204).send();
+  } catch (err) {
+    return next(err);
+  }
+});
 module.exports = router;

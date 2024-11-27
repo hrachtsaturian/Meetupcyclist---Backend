@@ -45,8 +45,6 @@ function ensureLoggedIn(req, res, next) {
  */
 function ensureHasAccessToTheUser(req, res, next) {
   try {
-    console.log(res.locals, req.params)
-
     const isTheSameUser = res.locals?.user?.id?.toString() === req.params?.id;
     if (!isTheSameUser) throw new ForbiddenError();
     return next();
@@ -54,7 +52,6 @@ function ensureHasAccessToTheUser(req, res, next) {
     return next(err);
   }
 }
-
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
