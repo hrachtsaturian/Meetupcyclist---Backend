@@ -14,6 +14,16 @@
     "required": [
       "email",
       "password"
+    ],
+    "examples": [
+      {
+        "email": "user@example.com",
+        "password": "P@ssw0rd123"
+      },
+      {
+        "email": "rider@bikersclub.com",
+        "password": "SecurePass!789"
+      }
     ]
   }
   

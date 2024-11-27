@@ -18,7 +18,7 @@ const locationPropsSqlQuery = locationProps.join(", ");
 class Location {
   /** Create location with data.
    *
-   * Returns { id, name, description, address, createdAt }
+   * Returns { id, name, description, address, createdBy, createdAt }
    **/
   static async create({ name, description, address, createdBy }) {
     const result = await db.query(
@@ -39,7 +39,7 @@ class Location {
 
   /** Given an id, return a single location record.
    *
-   * Returns { id, name, description, address, createdAt }
+   * Returns { id, name, description, address, createdBy, createdAt }
    *
    * Throws NotFoundError if location not found.
    **/
@@ -55,11 +55,9 @@ class Location {
     return location;
   }
 
-  /**
+  /** Return array of users.
    *
-   * Returns { id, name, description, address, createdAt }
-   *
-   * Throws NotFoundError if group not found.
+   * Returns data: [ {id, name, description, address, createdBy, createdAt}, ...]
    **/
   static async getAll() {
     const locationRes = await db.query(
@@ -79,7 +77,7 @@ class Location {
    * Data can include:
    *   { name, description, address }
    *
-   * Returns { id, name, description, address, createdAt }
+   * Returns { id, name, description, address, createdBy, createdAt }
    *
    * Throws NotFoundError if not found.
    */

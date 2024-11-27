@@ -22,6 +22,14 @@
       }
     },
     "additionalProperties": false,
-    "required": []
+    "required": [],
+    "examples": [
+      {
+        "title": "Weekend Ride to the Hills",
+        "description": "Join us for a thrilling ride to the hills and enjoy scenic views.",
+        "date": "2024-12-02T09:00:00Z",
+        "location": "1234 Mountain Road, Hillview, CA 90210"
+      }
+    ]
   }
   

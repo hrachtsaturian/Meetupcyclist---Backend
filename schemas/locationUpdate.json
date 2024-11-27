@@ -18,6 +18,13 @@
       }
     },
     "additionalProperties": false,
-    "required": []
+    "required": [],
+    "examples": [
+      {
+        "name": "Sunrise Park",
+        "description": "A scenic park perfect for early morning meetups.",
+        "address": "123 Parkside Lane, Springfield, IL 62701"
+      }
+    ]
   }
   

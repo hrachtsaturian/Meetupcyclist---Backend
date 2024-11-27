@@ -36,6 +36,24 @@ CREATE TABLE locations (
   description TEXT,
   address TEXT NOT NULL,
   created_by INT,
-  FOREIGN KEY (created_by) REFERENCES users(id),
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  FOREIGN KEY (created_by) REFERENCES users(id),
 );
+
+CREATE TABLE event_favorites (
+  user_id INTEGER NOT NULL,
+  event_id INTEGER NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, event_id),
+  FOREIGN KEY (user_id) REFERENCES users(id), 
+  FOREIGN KEY (event_id) REFERENCES events(id)
+)
+
+CREATE TABLE group_favorites (
+  user_id INTEGER NOT NULL,
+  group_id INTEGER,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, group_id),
+  FOREIGN KEY (user_id) REFERENCES users(id), 
+  FOREIGN KEY (group_id) REFERENCES groups(id)
+)

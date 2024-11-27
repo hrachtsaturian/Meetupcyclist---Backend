@@ -14,7 +14,21 @@ const eventProps = [
   `created_at AS "createdAt"`,
 ];
 
-const eventPropsSqlQuery = eventProps.join(", ");
+const eventPropsGet = [
+  `e.id`,
+  `e.title`,
+  `e.description`,
+  `e.date`,
+  `e.location`,
+  `e.created_by AS "createdBy"`,
+  `e.created_at AS "createdAt"`,
+  `u.first_name AS "firstName"`,
+  `u.last_name AS "lastName"`,
+  `u.id AS "userId"`,
+];
+
+const eventPropsForUpdateSqlQuery = eventProps.join(", ");
+const eventPropsForReadSqlQuery = eventPropsGet.join(", ");
 
 class Event {
   /** Create event with data.
@@ -30,7 +44,7 @@ class Event {
                   location,
                   created_by)
                  VALUES ($1, $2, $3, $4, $5)
-                 RETURNING ${eventPropsSqlQuery}`,
+                 RETURNING ${eventPropsForUpdateSqlQuery}`,
       [title, description, date, location, createdBy]
     );
 
@@ -45,21 +59,52 @@ class Event {
    *
    * Throws NotFoundError if event not found.
    **/
-  static async get(id) {
+  static async get(id, userId) {
     const eventRes = await db.query(
-      `SELECT ${eventPropsSqlQuery} FROM events WHERE id = ${id}`
+      `SELECT ${eventPropsForReadSqlQuery}, EXISTS (
+            SELECT 1 
+            FROM event_favorites AS ef 
+            WHERE ef.event_id = e.id AND ef.user_id = ${userId}
+          ) AS "isFavorite"
+        FROM events AS e 
+        JOIN users AS u 
+        ON e.created_by = u.id 
+        WHERE e.id = ${id}`
     );
 
     const event = eventRes.rows[0];
 
     if (!event) throw new NotFoundError(`No event found`);
-
     return event;
   }
 
-  // todo: filter by group, user, etc
-  static async getAll() {
-    const eventRes = await db.query(`SELECT ${eventPropsSqlQuery} FROM events`);
+  /** Return array of events.
+   *
+   * Returns data: [ {id, title, description, date, location, createdBy, createdAt}, ...]
+   * 
+   * filter -  showFavorites - additional query for filtering only the favorite events
+   **/
+  static async getAll(userId, showFavorites) {
+    let query = `SELECT ${eventPropsForReadSqlQuery}, EXISTS (
+          SELECT 1 
+          FROM event_favorites AS ef 
+          WHERE ef.event_id = e.id AND ef.user_id = ${userId}
+        ) AS "isFavorite"
+        FROM events AS e 
+        JOIN users AS u 
+        ON e.created_by = u.id`;
+
+    if (showFavorites) {
+      query =
+        query +
+        ` WHERE EXISTS (
+        SELECT 1 
+        FROM event_favorites AS ef 
+        WHERE ef.event_id = e.id AND ef.user_id = ${userId}
+      );`;
+    }
+
+    const eventRes = await db.query(query);
 
     const events = eventRes.rows;
 
@@ -82,9 +127,9 @@ class Event {
     const { setCols, values } = sqlForPartialUpdate(data);
 
     const querySql = `UPDATE events
-                      SET ${setCols}
-                      WHERE id = ${id}
-                      RETURNING ${eventPropsSqlQuery}`;
+                        SET ${setCols}
+                        WHERE id = ${id}
+                        RETURNING ${eventPropsForUpdateSqlQuery}`;
 
     const result = await db.query(querySql, values);
     const event = result.rows[0];

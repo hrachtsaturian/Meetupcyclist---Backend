@@ -16,6 +16,14 @@ const app = express();
 app.use(express.json());
 app.use(authenticateJWT);
 
+// policies
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
 app.use("/", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/events", eventsRoutes);
