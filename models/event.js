@@ -64,7 +64,7 @@ class Event {
       SELECT 
         ${eventPropsForReadSqlQuery},
         CASE WHEN ef.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
-        CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+        CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isAttending"
       FROM events AS e
       JOIN users AS u 
         ON e.created_by = u.id
@@ -94,7 +94,7 @@ class Event {
       SELECT 
         ${eventPropsForReadSqlQuery},
         CASE WHEN ef.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
-        CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+        CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isAttending"
       FROM events AS e
       JOIN users AS u 
         ON e.created_by = u.id

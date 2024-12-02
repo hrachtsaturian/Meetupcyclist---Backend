@@ -43,6 +43,8 @@ CREATE TABLE locations (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+-- delete these from database and recreate
+
 CREATE TABLE event_attendees (
   user_id INTEGER NOT NULL,
   event_id INTEGER NOT NULL,
