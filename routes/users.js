@@ -19,7 +19,7 @@ const {
  *
  * - Authorization required: logged in
  *
- * @returns { id, firstName, lastName, email, bio, pfpUrl }
+ * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
  **/
 router.get(
   "/:id",
@@ -39,7 +39,7 @@ router.get(
  *
  * - Authorization required: logged in
  *
- * @returns { id, firstName, lastName, email, bio, pfpUrl }
+ * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
  **/
 router.get(
   "/",
@@ -62,7 +62,7 @@ router.get(
  *
  * - Authorization required: logged in and same user
  *
- * @returns { id, firstName, lastName, email, bio, pfpUrl }
+ * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
  *
  **/
 router.patch(

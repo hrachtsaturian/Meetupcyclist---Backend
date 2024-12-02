@@ -60,15 +60,18 @@ class Event {
    * Throws NotFoundError if event not found.
    **/
   static async get(id, userId) {
-    const eventRes = await db.query(
-      `SELECT ${eventPropsForReadSqlQuery}, EXISTS (
-            SELECT 1 
-            FROM event_favorites AS ef 
-            WHERE ef.event_id = e.id AND ef.user_id = ${userId}
-          ) AS "isFavorite"
-        FROM events AS e 
-        JOIN users AS u 
-        ON e.created_by = u.id 
+    const eventRes = await db.query(`
+      SELECT 
+        ${eventPropsForReadSqlQuery},
+        CASE WHEN ef.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+      FROM events AS e
+      JOIN users AS u 
+        ON e.created_by = u.id
+      LEFT JOIN event_favorites AS ef 
+        ON e.id = ef.event_id AND ef.user_id = ${userId}
+      LEFT JOIN event_attendees AS ea 
+        ON e.id = ea.event_id AND ea.user_id = ${userId}
         WHERE e.id = ${id}`
     );
 
@@ -81,28 +84,35 @@ class Event {
   /** Return array of events.
    *
    * Returns data: [ {id, title, description, date, location, createdBy, createdAt}, ...]
-   * 
-   * filter -  showFavorites - additional query for filtering only the favorite events
+   *
+   // filters: 
+   - showFavorites (returns only the events which are in Favorites),
+   - showAttendingEvents (returns only the events which are in EventAttendees)
    **/
-  static async getAll(userId, showFavorites) {
-    let query = `SELECT ${eventPropsForReadSqlQuery}, EXISTS (
-          SELECT 1 
-          FROM event_favorites AS ef 
-          WHERE ef.event_id = e.id AND ef.user_id = ${userId}
-        ) AS "isFavorite"
-        FROM events AS e 
-        JOIN users AS u 
-        ON e.created_by = u.id`;
+  static async getAll(userId, showFavorites, showAttendingEvents) {
+    let query = `
+      SELECT 
+        ${eventPropsForReadSqlQuery},
+        CASE WHEN ef.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+      FROM events AS e
+      JOIN users AS u 
+        ON e.created_by = u.id
+      LEFT JOIN event_favorites AS ef 
+        ON e.id = ef.event_id AND ef.user_id = ${userId}
+      LEFT JOIN event_attendees AS ea 
+        ON e.id = ea.event_id AND ea.user_id = ${userId}`;
 
-    if (showFavorites) {
-      query =
-        query +
-        ` WHERE EXISTS (
-        SELECT 1 
-        FROM event_favorites AS ef 
-        WHERE ef.event_id = e.id AND ef.user_id = ${userId}
-      );`;
+    // Add condition for filtering
+    if (showFavorites === "true") {
+      query += ' WHERE ef.user_id IS NOT NULL';
     }
+
+    if (showAttendingEvents === "true") {
+      query += ' WHERE ea.user_id IS NOT NULL';
+    }
+
+    query = query + ' ORDER by e.created_at DESC'
 
     const eventRes = await db.query(query);
 
@@ -119,7 +129,7 @@ class Event {
    * Data can include:
    *   { title, description, date, location }
    *
-   * Returns { id, title, description, date, location, createdBy }
+   * Returns { id, title, description, date, location, createdBy, createdAt }
    *
    * Throws NotFoundError if not found.
    */

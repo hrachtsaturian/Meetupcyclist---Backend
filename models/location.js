@@ -13,7 +13,19 @@ const locationProps = [
   `created_at AS "createdAt"`,
 ];
 
-const locationPropsSqlQuery = locationProps.join(", ");
+const locationPropsGet = [
+  `l.id`,
+  `l.name`,
+  `l.description`,
+  `l.created_by AS "createdBy"`,
+  `l.created_at AS "createdAt"`,
+  `u.first_name AS "firstName"`,
+  `u.last_name AS "lastName"`,
+  `u.id AS "userId"`, // ???
+];
+
+const locationPropsForUpdateSqlQuery = locationProps.join(", ");
+const locationPropsForReadSqlQuery = locationPropsGet.join(", ");
 
 class Location {
   /** Create location with data.
@@ -28,7 +40,7 @@ class Location {
                   address,
                   created_by)
                  VALUES ($1, $2, $3, $4)
-                 RETURNING ${locationPropsSqlQuery}`,
+                 RETURNING ${locationPropsForUpdateSqlQuery}`,
       [name, description, address, createdBy]
     );
 
@@ -43,9 +55,16 @@ class Location {
    *
    * Throws NotFoundError if location not found.
    **/
-  static async get(id) {
-    const locationRes = await db.query(
-      `SELECT ${locationPropsSqlQuery} FROM locations WHERE id = ${id}`
+  static async get(id, userId) {
+    const locationRes = await db.query(`
+      SELECT ${locationPropsForReadSqlQuery},
+        CASE WHEN lf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite"
+      FROM locations AS l
+      JOIN users AS u 
+        ON l.created_by = u.id
+      LEFT JOIN location_favorites AS lf 
+      ON l.id = lf.location_id AND lf.user_id = ${userId}
+      WHERE l.id = ${id}`
     );
 
     const location = locationRes.rows[0];
@@ -55,14 +74,29 @@ class Location {
     return location;
   }
 
-  /** Return array of users.
+  /** Return array of locations.
    *
    * Returns data: [ {id, name, description, address, createdBy, createdAt}, ...]
+   * 
+   // filters: 
+   - showFavorites (returns only the locations which are in Favorites)
    **/
-  static async getAll() {
-    const locationRes = await db.query(
-      `SELECT ${locationPropsSqlQuery} FROM locations`
-    );
+  static async getAll(userId, showFavorites) {
+    let query = `SELECT ${locationPropsForReadSqlQuery},
+        CASE WHEN lf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite"
+      FROM locations AS l
+      JOIN users AS u 
+        ON l.created_by = u.id
+      LEFT JOIN location_favorites AS lf 
+      ON l.id = lf.location_id AND lf.user_id = ${userId}
+  `;
+
+    // Add condition for filtering favorites
+    if (showFavorites === "true") {
+      query += " WHERE lf.user_id IS NOT NULL";
+    }
+
+    const locationRes = await db.query(query);
 
     const locations = locationRes.rows;
 
@@ -87,7 +121,7 @@ class Location {
     const querySql = `UPDATE locations
                       SET ${setCols}
                       WHERE id = ${id}
-                      RETURNING ${locationPropsSqlQuery}`;
+                      RETURNING ${locationPropsForUpdateSqlQuery}`;
 
     const result = await db.query(querySql, values);
     const location = result.rows[0];

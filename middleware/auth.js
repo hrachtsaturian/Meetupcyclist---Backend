@@ -52,8 +52,23 @@ function ensureHasAccessToTheUser(req, res, next) {
     return next(err);
   }
 }
+
+/** Middleware to use when they must be admin.
+ *
+ * If not, raises Forbidden.
+ */
+function ensureIsAdmin(req, res, next) {
+  try {
+    if (!res.locals?.user?.isAdmin) throw new ForbiddenError();
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
   ensureHasAccessToTheUser,
+  ensureIsAdmin
 };
