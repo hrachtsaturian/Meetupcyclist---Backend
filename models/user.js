@@ -16,7 +16,6 @@ const userProps = [
   `first_name AS "firstName"`,
   `last_name AS "lastName"`,
   `email`,
-  `password`,
   `bio`,
   `pfp_url AS "pfpUrl"`,
   `is_admin AS "isAdmin"`,
@@ -34,7 +33,7 @@ class User {
    **/
   static async authenticate(email, password) {
     const result = await db.query(
-      `SELECT ${userPropsSqlQuery}
+      `SELECT ${userPropsSqlQuery}, password
             FROM users
             WHERE email = $1`,
       [email]
@@ -110,8 +109,6 @@ class User {
 
     if (!user) throw new NotFoundError(`No user found`);
 
-    delete user.password
-
     return user;
   }
 
@@ -125,9 +122,6 @@ class User {
     );
 
     const users = userRes.rows;
-
-    // doesn't work 
-    users?.forEach(u => delete u.passowrd);
 
     return users || [];
   }
@@ -170,7 +164,6 @@ class User {
 
     if (!user) throw new NotFoundError(`No user found`);
 
-    delete user.password;
     return user;
   }
 }
