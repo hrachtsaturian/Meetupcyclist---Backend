@@ -12,7 +12,19 @@ const groupProps = [
   `created_at AS "createdAt"`,
 ];
 
-const groupPropsSqlQuery = groupProps.join(", ");
+const groupPropsGet = [
+  `g.id`,
+  `g.name`,
+  `g.description`,
+  `g.created_by AS "createdBy"`,
+  `g.created_at AS "createdAt"`,
+  `u.first_name AS "firstName"`,
+  `u.last_name AS "lastName"`,
+  `u.id AS "userId"`,
+];
+
+const groupPropsForUpdateSqlQuery = groupProps.join(", ");
+const groupPropsForReadSqlQuery = groupPropsGet.join(", ");
 
 class Group {
   /** Create group with data.
@@ -26,7 +38,7 @@ class Group {
                   description, 
                   created_by)
                  VALUES ($1, $2, $3)
-                 RETURNING ${groupPropsSqlQuery}`,
+                 RETURNING ${groupPropsForUpdateSqlQuery}`,
       [name, description, createdBy]
     );
 
@@ -41,24 +53,63 @@ class Group {
    *
    * Throws NotFoundError if group not found.
    **/
-  static async get(id) {
-    const groupRes = await db.query(
-      `SELECT ${groupPropsSqlQuery} FROM groups WHERE id = ${id}`
+  static async get(id, userId) {
+    const groupRes = await db.query(`
+      SELECT 
+        ${groupPropsForReadSqlQuery},
+        CASE WHEN gf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+      FROM groups AS g
+      JOIN users AS u 
+        ON g.created_by = u.id
+      LEFT JOIN group_favorites AS gf 
+        ON g.id = gf.group_id AND gf.user_id = ${userId}
+      LEFT JOIN group_members AS gm 
+        ON g.id = gm.group_id AND gm.user_id = ${userId}
+      WHERE g.id = ${id}`
     );
 
     const group = groupRes.rows[0];
 
     if (!group) throw new NotFoundError(`No group found`);
-
     return group;
   }
 
   /** Return array of groups.
    *
    * Returns data: [ {id, name, description, createdBy, createdAt}, ...]
+   * 
+   // filters: 
+   - showFavorites (returns only the groups which are in Favorites),
+   - showJoinedGroups (returns only the groups which are in GroupMembers)
    **/
-  static async getAll() {
-    const groupRes = await db.query(`SELECT ${groupPropsSqlQuery} FROM groups`);
+  static async getAll(userId, showFavorites, showJoinedGroups) {
+    let query = `
+      SELECT 
+        ${groupPropsForReadSqlQuery},
+        CASE WHEN gf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+      FROM groups AS g
+      JOIN users AS u 
+        ON g.created_by = u.id
+      LEFT JOIN group_favorites AS gf 
+        ON g.id = gf.group_id AND gf.user_id = ${userId}
+      LEFT JOIN group_members AS gm 
+        ON g.id = gm.group_id AND gm.user_id = ${userId}
+    `;
+
+    // Add condition for filtering 
+    if (showFavorites === "true") {
+      query += ' WHERE gf.user_id IS NOT NULL';
+    }
+
+    if (showJoinedGroups === "true") {
+      query += ' WHERE gm.user_id IS NOT NULL';
+    }
+
+    query = query + ' ORDER by g.created_at DESC';
+
+    const groupRes = await db.query(query);
 
     const groups = groupRes.rows;
 
@@ -83,7 +134,7 @@ class Group {
     const querySql = `UPDATE groups
                       SET ${setCols}
                       WHERE id = ${id}
-                      RETURNING ${groupPropsSqlQuery}`;
+                      RETURNING ${groupPropsForUpdateSqlQuery}`;
 
     const result = await db.query(querySql, values);
     const group = result.rows[0];

@@ -6,9 +6,12 @@ CREATE TABLE users (
     CHECK (position('@' IN email) > 1),
   password TEXT NOT NULL,
   bio TEXT,
-  pfp_url TEXT
+  pfp_url TEXT,
+  is_admin BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- add admin user when seeding db?
 
 CREATE TABLE events (
   id SERIAL PRIMARY KEY,
@@ -36,9 +39,27 @@ CREATE TABLE locations (
   description TEXT,
   address TEXT NOT NULL,
   created_by INT,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
   FOREIGN KEY (created_by) REFERENCES users(id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE event_attendees (
+  user_id INTEGER NOT NULL,
+  event_id INTEGER NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, event_id),
+  FOREIGN KEY (user_id) REFERENCES users(id), 
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)
+
+CREATE TABLE group_members (
+  user_id INTEGER NOT NULL,
+  group_id INTEGER NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, group_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+)
 
 CREATE TABLE event_favorites (
   user_id INTEGER NOT NULL,
@@ -46,14 +67,23 @@ CREATE TABLE event_favorites (
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id, event_id),
   FOREIGN KEY (user_id) REFERENCES users(id), 
-  FOREIGN KEY (event_id) REFERENCES events(id)
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 )
 
 CREATE TABLE group_favorites (
   user_id INTEGER NOT NULL,
-  group_id INTEGER,
+  group_id INTEGER NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   PRIMARY KEY (user_id, group_id),
   FOREIGN KEY (user_id) REFERENCES users(id), 
-  FOREIGN KEY (group_id) REFERENCES groups(id)
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+)
+
+CREATE TABLE location_favorites (
+  user_id INTEGER NOT NULL,
+  location_id INTEGER NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, location_id),
+  FOREIGN KEY (user_id) REFERENCES users(id), 
+  FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE
 )

@@ -19,6 +19,7 @@ const userProps = [
   `password`,
   `bio`,
   `pfp_url AS "pfpUrl"`,
+  `is_admin AS "isAdmin"`,
   `created_at AS "createdAt"`,
 ]
 
@@ -27,7 +28,7 @@ const userPropsSqlQuery = userProps.join(', ');
 class User {
   /** authenticate user with email, password.
    *
-   * Returns { id, first_name, last_name, email, password, bio, pfp_url }
+   * Returns { id, firstName, lastName, email, password, bio, pfpUrl, isAdmin, createdAt }
    *
    * Throws UnauthorizedError is user not found or wrong password.
    **/
@@ -55,7 +56,7 @@ class User {
 
   /** User signup with data.
    *
-   * Returns { id, firstName, lastName, email, password bio, pfpUrl }
+   * Returns { id, firstName, lastName, email, password, bio, pfpUrl, isAdmin, createdAt }
    *
    * Throws BadRequestError on duplicates.
    **/
@@ -82,8 +83,9 @@ class User {
             email,
             password,
             bio,
-            pfp_url)
-           VALUES ($1, $2, $3, $4, $5, $6)
+            pfp_url,
+            isAdmin)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING ${userPropsSqlQuery}`,
       [firstName, lastName, email, hashedPassword, bio, pfpUrl]
     );
@@ -95,7 +97,7 @@ class User {
 
   /** Given an id, return data about user.
    *
-   * Returns { id, first_name, last_name, email, password, bio, pfp_url }
+   * Returns { id, firstName, lastName, email, password, bio, pfpUrl, isAdmin, createdAt }
    *
    * Throws NotFoundError if user not found.
    **/
@@ -115,7 +117,7 @@ class User {
 
     /** Return array of users.
    *
-   * Returns data: [ {id, first_name, last_name, email, password, bio, pfp_url}, ...]
+   * Returns data: [ {id, firstName, lastName, email, password, bio, pfpUrl, isAdmin, createdAt}, ...]
    **/
   static async getAll() {
     const userRes = await db.query(
@@ -124,6 +126,7 @@ class User {
 
     const users = userRes.rows;
 
+    // doesn't work 
     users?.forEach(u => delete u.passowrd);
 
     return users || [];
@@ -137,7 +140,7 @@ class User {
    * Data can include:
    *   { firstName, lastName, email, password, bio, pfpUrl }
    *
-   * Returns { id, firstName, lastName, email, password, bio, pfpUrl }
+   * Returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
    *
    * Throws NotFoundError if not found.
    *
@@ -153,6 +156,8 @@ class User {
       firstName: "first_name",
       lastName: "last_name",
       pfpUrl: "pfp_url",
+      isAdmin: "is_admin",
+      createdAt: "created_at"
     });
 
     const querySql = `UPDATE users

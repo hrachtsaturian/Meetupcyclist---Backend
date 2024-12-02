@@ -4,48 +4,62 @@
 
 const express = require("express");
 const router = new express.Router();
-const { BadRequestError, UnauthorizedError } = require("../expressError");
+const {
+  BadRequestError,
+  // UnauthorizedError,
+  NotFoundError,
+} = require("../expressError");
 const jsonschema = require("jsonschema");
 
 const Location = require("../models/location");
+const LocationFavorite = require("../models/locationFavorite");
 const locationCreateSchema = require("../schemas/locationCreate.json");
 const locationUpdateSchema = require("../schemas/locationUpdate.json");
-const { ensureLoggedIn } = require("../middleware/auth");
-
+const { ensureLoggedIn, ensureIsAdmin } = require("../middleware/auth");
 
 /**
  * POST / :  { name, description, address } => { location }
  *
- *  - Authorization required: logged in
+ *  - Authorization required: logged in and is admin
  *
- *  * @returns { id, name, description, address, createdAt }
+ *  * @returns { id, name, description, address, createdBy, createdAt }
  **/
-router.post("/", ensureLoggedIn, async function (req, res, next) {
-  try {
-    const validator = jsonschema.validate(req.body, locationCreateSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map((e) => e.stack);
-      throw new BadRequestError(errs);
-    }
+router.post(
+  "/",
+  ensureLoggedIn,
+  ensureIsAdmin,
+  async function (req, res, next) {
+    try {
+      const validator = jsonschema.validate(req.body, locationCreateSchema);
+      if (!validator.valid) {
+        const errs = validator.errors.map((e) => e.stack);
+        throw new BadRequestError(errs);
+      }
 
-    const { name, description, address } = req.body;
-    const location = await Location.create({name, description, address, createdBy: res.locals.user.id});
-    return res.json({ data: location });
-  } catch (err) {
-    return next(err);
+      const { name, description, address } = req.body;
+      const location = await Location.create({
+        name,
+        description,
+        address,
+        createdBy: res.locals.user.id,
+      });
+      return res.json({ data: location });
+    } catch (err) {
+      return next(err);
+    }
   }
-});
+);
 
 /**
  * GET /[id] => { location }
  *
  * - Authorization required: logged in
  *
- * @returns { id, name, description, address, createdAt }
+ * @returns { id, name, description, address, createdBy, createdAt }
  **/
 router.get("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
-    const location = await Location.get(req.params.id);
+    const location = await Location.get(req.params.id, res.locals.user.id);
     return res.json({ data: location });
   } catch (err) {
     return next(err);
@@ -57,12 +71,28 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  *
  * - Authorization required: logged in
  *
- * @returns { id, name, description, address, createdAt }
+ * @returns { id, name, description, address, createdBy, createdAt }
+  // filters: 
+- showFavorites (returns only the groups which are in Favorites)
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
+  // filter for query
+  const { showFavorites } = req.query;
+
   try {
-    const location = await Location.getAll();
-    return res.json({ data: location });
+    // fetching all the locations
+    const locations = await Location.getAll(res.locals.user.id);
+
+    // showFavorites filter
+    let filteredLocations = locations;
+    if (showFavorites === "true") {
+      filteredLocations = locations.filter(
+        (location) =>
+          location.isFavorite === true && location.userId === res.locals.user.id
+      );
+    }
+
+    return res.json({ data: filteredLocations });
   } catch (err) {
     return next(err);
   }
@@ -74,43 +104,100 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
  * - Data can include:
  *   { name, description, address }
  *
- * - Authorization required: logged in
+ * - Authorization required: logged in and is admin
  *
- * @returns { id, name, description, address, createdAt }
+ * @returns { id, name, description, address, createdBy, createdAt }
  *
  **/
-router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
+router.patch(
+  "/:id",
+  ensureLoggedIn,
+  ensureIsAdmin,
+  async function (req, res, next) {
+    try {
+      const location = await Location.get(req.params.id, res.locals.user.id);
+
+      if (!location) {
+        throw new NotFoundError();
+      }
+
+      const validator = jsonschema.validate(req.body, locationUpdateSchema);
+      if (!validator.valid) {
+        const errs = validator.errors.map((e) => e.stack);
+        throw new BadRequestError(errs);
+      }
+
+      const updatedLocation = await Location.update(req.params.id, req.body);
+      return res.json({ data: updatedLocation });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /[id] { location } => 204
+ *
+ * - Authorization required: logged in and is admin
+ *
+ *
+ **/
+router.delete(
+  "/:id",
+  ensureLoggedIn,
+  ensureIsAdmin,
+  async function (req, res, next) {
+    try {
+      await Location.delete(req.params.id);
+
+      return res.status(204).send();
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/**
+ * POST /[id]/favorite  Add location to favorites with data
+ *
+ *  - Authorization required: logged in
+ *
+ *  * @returns { userId, eventId, createdAt }
+ **/
+router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
   try {
-    const validator = jsonschema.validate(req.body, locationUpdateSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map((e) => e.stack);
-      throw new BadRequestError(errs);
+    const location = await Location.get(req.params.id, res.locals.user.id);
+
+    if (!location) {
+      throw new NotFoundError();
     }
 
-    const location = await Location.update(req.params.id, req.body);
-    return res.json({ data: location });
+    const favorite = await LocationFavorite.add(
+      res.locals.user.id,
+      req.params.id
+    );
+    return res.json({ data: favorite });
   } catch (err) {
     return next(err);
   }
 });
 
 /**
- * DELETE /[id] { location } => 204
+ * DELETE /[id]/favorite  Remove location from favorites
  *
- * - Authorization required: logged in, created by
+ * - Authorization required: logged in
  *
  *
  **/
-router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
   try {
-    const location = await Location.get(req.params.id);
+    const location = await Location.get(req.params.id, res.locals.user.id);
 
-    if (location.createdBy?.toString() !== res.locals.user.id.toString()) {
-      throw new UnauthorizedError();
+    if (!location) {
+      throw new NotFoundError();
     }
 
-    await Location.delete(req.params.id);
-  
+    await LocationFavorite.remove(res.locals.user.id, req.params.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);
