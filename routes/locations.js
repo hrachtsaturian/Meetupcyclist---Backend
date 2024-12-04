@@ -12,7 +12,7 @@ const {
 const jsonschema = require("jsonschema");
 
 const Location = require("../models/location");
-const LocationFavorite = require("../models/locationFavorite");
+const LocationSave = require("../models/locationSave");
 const locationCreateSchema = require("../schemas/locationCreate.json");
 const locationUpdateSchema = require("../schemas/locationUpdate.json");
 const { ensureLoggedIn, ensureIsAdmin } = require("../middleware/auth");
@@ -73,22 +73,22 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  *
  * @returns { id, name, description, address, createdBy, createdAt }
   // filters: 
-- showFavorites (returns only the groups which are in Favorites)
+- showSaves (returns only the groups which are in Saved)
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
   // filter for query
-  const { showFavorites } = req.query;
+  const { showSaves } = req.query;
 
   try {
     // fetching all the locations
     const locations = await Location.getAll(res.locals.user.id);
 
-    // showFavorites filter
+    // showSaves filter
     let filteredLocations = locations;
-    if (showFavorites === "true") {
+    if (showSaves === "true") {
       filteredLocations = locations.filter(
         (location) =>
-          location.isFavorite === true && location.userId === res.locals.user.id
+          location.isSaved === true && location.userId === res.locals.user.id
       );
     }
 
@@ -158,13 +158,13 @@ router.delete(
 );
 
 /**
- * POST /[id]/favorite  Add location to favorites with data
+ * POST /[id]/saved  Add location to Saved with data
  *
  *  - Authorization required: logged in
  *
  *  * @returns { userId, eventId, createdAt }
  **/
-router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
   try {
     const location = await Location.get(req.params.id, res.locals.user.id);
 
@@ -172,24 +172,24 @@ router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const favorite = await LocationFavorite.add(
+    const save = await LocationSave.add(
       res.locals.user.id,
       req.params.id
     );
-    return res.json({ data: favorite });
+    return res.json({ data: save });
   } catch (err) {
     return next(err);
   }
 });
 
 /**
- * DELETE /[id]/favorite  Remove location from favorites
+ * DELETE /[id]/saved  Remove location from Saved
  *
  * - Authorization required: logged in
  *
  *
  **/
-router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:id/saved", ensureLoggedIn, async function (req, res, next) {
   try {
     const location = await Location.get(req.params.id, res.locals.user.id);
 
@@ -197,7 +197,7 @@ router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    await LocationFavorite.remove(res.locals.user.id, req.params.id);
+    await LocationSave.remove(res.locals.user.id, req.params.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);

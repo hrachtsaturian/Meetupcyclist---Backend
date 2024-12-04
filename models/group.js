@@ -57,13 +57,13 @@ class Group {
     const groupRes = await db.query(`
       SELECT 
         ${groupPropsForReadSqlQuery},
-        CASE WHEN gf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN gs.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
         CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
       FROM groups AS g
       JOIN users AS u 
         ON g.created_by = u.id
-      LEFT JOIN group_favorites AS gf 
-        ON g.id = gf.group_id AND gf.user_id = ${userId}
+      LEFT JOIN group_saves AS gs
+        ON g.id = gs.group_id AND gs.user_id = ${userId}
       LEFT JOIN group_members AS gm 
         ON g.id = gm.group_id AND gm.user_id = ${userId}
       WHERE g.id = ${id}`
@@ -80,33 +80,34 @@ class Group {
    * Returns data: [ {id, name, description, createdBy, createdAt}, ...]
    * 
    // filters: 
-   - showFavorites (returns only the groups which are in Favorites),
+   - showSaves (returns only the groups which are in Saved),
    - showJoinedGroups (returns only the groups which are in GroupMembers)
    **/
-  static async getAll(userId, showFavorites, showJoinedGroups) {
+  static async getAll(userId, showSaves, showJoinedGroups) {
     let query = `
       SELECT 
         ${groupPropsForReadSqlQuery},
-        CASE WHEN gf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN gs.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
         CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
       FROM groups AS g
       JOIN users AS u 
         ON g.created_by = u.id
-      LEFT JOIN group_favorites AS gf 
-        ON g.id = gf.group_id AND gf.user_id = ${userId}
+      LEFT JOIN group_saves AS gs 
+        ON g.id = gs.group_id AND gs.user_id = ${userId}
       LEFT JOIN group_members AS gm 
         ON g.id = gm.group_id AND gm.user_id = ${userId}
     `;
 
     // Add condition for filtering 
-    if (showFavorites === "true") {
-      query += ' WHERE gf.user_id IS NOT NULL';
+    if (showSaves === "true") {
+      query += ' WHERE gs.user_id IS NOT NULL';
     }
 
     if (showJoinedGroups === "true") {
       query += ' WHERE gm.user_id IS NOT NULL';
     }
 
+    // order by group members number - highest to lowest
     query = query + ' ORDER by g.created_at DESC';
 
     const groupRes = await db.query(query);

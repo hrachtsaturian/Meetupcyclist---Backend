@@ -63,13 +63,13 @@ class Event {
     const eventRes = await db.query(`
       SELECT 
         ${eventPropsForReadSqlQuery},
-        CASE WHEN ef.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN es.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
         CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isAttending"
       FROM events AS e
       JOIN users AS u 
         ON e.created_by = u.id
-      LEFT JOIN event_favorites AS ef 
-        ON e.id = ef.event_id AND ef.user_id = ${userId}
+      LEFT JOIN event_saves AS es
+        ON e.id = es.event_id AND es.user_id = ${userId}
       LEFT JOIN event_attendees AS ea 
         ON e.id = ea.event_id AND ea.user_id = ${userId}
         WHERE e.id = ${id}`
@@ -86,33 +86,46 @@ class Event {
    * Returns data: [ {id, title, description, date, location, createdBy, createdAt}, ...]
    *
    // filters: 
-   - showFavorites (returns only the events which are in Favorites),
+   - showSaves (returns only the events which are in Saved),
    - showAttendingEvents (returns only the events which are in EventAttendees)
    **/
-  static async getAll(userId, showFavorites, showAttendingEvents) {
+  static async getAll({ userId, showSaves, showAttendingEvents, showPastEvents }) {
     let query = `
       SELECT 
         ${eventPropsForReadSqlQuery},
-        CASE WHEN ef.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite",
+        CASE WHEN es.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
         CASE WHEN ea.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isAttending"
       FROM events AS e
       JOIN users AS u 
         ON e.created_by = u.id
-      LEFT JOIN event_favorites AS ef 
-        ON e.id = ef.event_id AND ef.user_id = ${userId}
+      LEFT JOIN event_saves AS es
+        ON e.id = es.event_id AND es.user_id = ${userId}
       LEFT JOIN event_attendees AS ea 
         ON e.id = ea.event_id AND ea.user_id = ${userId}`;
 
-    // Add condition for filtering
-    if (showFavorites === "true") {
-      query += ' WHERE ef.user_id IS NOT NULL';
+    let whereClause = '';
+
+    if (showSaves === "true") {
+      whereClause = ' WHERE es.user_id IS NOT NULL';
     }
 
     if (showAttendingEvents === "true") {
-      query += ' WHERE ea.user_id IS NOT NULL';
+      if (whereClause) {
+        whereClause += ' AND ea.user_id IS NOT NULL';
+      } else {
+        whereClause += ' WHERE ea.user_id IS NOT NULL';
+      }
     }
 
-    query = query + ' ORDER by e.created_at DESC'
+    if (showPastEvents !== "true") {
+      if (whereClause) {
+        whereClause += ' AND e.date > NOW()';
+      } else {
+        whereClause += ' WHERE e.date > NOW()';
+      }
+    }
+
+    query = query + whereClause + ' ORDER by e.date'
 
     const eventRes = await db.query(query);
 

@@ -13,7 +13,7 @@ const jsonschema = require("jsonschema");
 
 const Group = require("../models/group");
 const GroupMember = require("../models/groupMember");
-const GroupFavorite = require("../models/groupFavorite");
+const GroupSave = require("../models/groupSave");
 const groupCreateSchema = require("../schemas/groupCreate.json");
 const groupUpdateSchema = require("../schemas/groupUpdate.json");
 const { ensureLoggedIn } = require("../middleware/auth");
@@ -68,16 +68,16 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  *
  * @returns { id, name, description, createdBy, createdAt }
  // filters: 
-- showFavorites (returns only the groups which are in Favorites),
+- showSaves (returns only the groups which are in Saved),
 - showJoinedGroups (returns only the events which are in GroupMembers)
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
   // filters for query
-  const { showFavorites, showJoinedGroups } = req.query;
+  const { showSaves, showJoinedGroups } = req.query;
 
   try {
     // fetching all the groups
-    const groups = await Group.getAll(res.locals.user.id, showFavorites, showJoinedGroups);
+    const groups = await Group.getAll(res.locals.user.id, showSaves, showJoinedGroups);
 
     return res.json({ data: groups });
   } catch (err) {
@@ -171,7 +171,7 @@ router.post("/:id/membership", ensureLoggedIn, async function (req, res, next) {
 });
 
 /**
- * DELETE /[id]/membership Withdraw from group
+ * DELETE /[id]/membership Leave group
  *
  * - Authorization required: logged in
  *
@@ -197,13 +197,13 @@ router.delete(
 );
 
 /**
- * POST /[id]/favorite  Add group to favorites with data
+ * POST /[id]/saved  Add group to Saved with data
  *
  *  - Authorization required: logged in
  *
  *  * @returns { userId, groupId, createdAt }
  **/
-router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
   try {
     const group = await Group.get(req.params.id, res.locals.user.id);
 
@@ -211,20 +211,20 @@ router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const favorite = await GroupFavorite.add(res.locals.user.id, req.params.id);
-    return res.json({ data: favorite });
+    const save = await GroupSave.add(res.locals.user.id, req.params.id);
+    return res.json({ data: save });
   } catch (err) {
     return next(err);
   }
 });
 
 /**
- * DELETE /[id]/favorite  Remove group from favorites
+ * DELETE /[id]/saved  Remove group from Saved
  *
  * - Authorization required: logged in
  *
  **/
-router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:id/saved", ensureLoggedIn, async function (req, res, next) {
   try {
     const group = await Group.get(req.params.id, res.locals.user.id);
 
@@ -232,7 +232,7 @@ router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    await GroupFavorite.remove(res.locals.user.id, req.params.id);
+    await GroupSave.remove(res.locals.user.id, req.params.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);
