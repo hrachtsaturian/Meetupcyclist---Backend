@@ -17,11 +17,12 @@ const locationPropsGet = [
   `l.id`,
   `l.name`,
   `l.description`,
+  `l.address`,
   `l.created_by AS "createdBy"`,
   `l.created_at AS "createdAt"`,
   `u.first_name AS "firstName"`,
   `u.last_name AS "lastName"`,
-  `u.id AS "userId"`, // ???
+  `u.id AS "userId"`, 
 ];
 
 const locationPropsForUpdateSqlQuery = locationProps.join(", ");
@@ -58,12 +59,12 @@ class Location {
   static async get(id, userId) {
     const locationRes = await db.query(`
       SELECT ${locationPropsForReadSqlQuery},
-        CASE WHEN lf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite"
+        CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved"
       FROM locations AS l
       JOIN users AS u 
         ON l.created_by = u.id
-      LEFT JOIN location_favorites AS lf 
-      ON l.id = lf.location_id AND lf.user_id = ${userId}
+      LEFT JOIN location_saves AS ls
+      ON l.id = ls.location_id AND ls.user_id = ${userId}
       WHERE l.id = ${id}`
     );
 
@@ -79,22 +80,24 @@ class Location {
    * Returns data: [ {id, name, description, address, createdBy, createdAt}, ...]
    * 
    // filters: 
-   - showFavorites (returns only the locations which are in Favorites)
+   - showSaves (returns only the locations which are in Saved)
    **/
-  static async getAll(userId, showFavorites) {
+  static async getAll(userId, showSaves) {
     let query = `SELECT ${locationPropsForReadSqlQuery},
-        CASE WHEN lf.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isFavorite"
+        CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved"
       FROM locations AS l
       JOIN users AS u 
         ON l.created_by = u.id
-      LEFT JOIN location_favorites AS lf 
-      ON l.id = lf.location_id AND lf.user_id = ${userId}
+      LEFT JOIN location_saves AS ls
+      ON l.id = ls.location_id AND ls.user_id = ${userId}
   `;
 
-    // Add condition for filtering favorites
-    if (showFavorites === "true") {
-      query += " WHERE lf.user_id IS NOT NULL";
+    // Add condition for filtering
+    if (showSaves === "true") {
+      query += " WHERE ls.user_id IS NOT NULL";
     }
+
+     query = query + ' ORDER by l.created_at DESC'
 
     const locationRes = await db.query(query);
 

@@ -3,32 +3,32 @@
 const db = require("../db.js");
 const { NotFoundError } = require("../expressError.js");
 
-const favProps = [
+const saveProps = [
   `user_id AS "userId"`,
   `location_id AS "locationId"`,
   `created_at AS "createdAt"`,
 ];
 
-const favPropsSqlQuery = favProps.join(", ");
+const savePropsSqlQuery = saveProps.join(", ");
 
-class LocationFavorite {
-  /** Add favorite with data.
+class LocationSave {
+  /** Save with data.
    *
    * Returns { userId, locationId, createdAt }
    **/
   static async add(userId, locationId) {
-    const query = `INSERT INTO location_favorites 
+    const query = `INSERT INTO location_saves
                  (user_id,
                   location_id)
                  VALUES ($1, $2)
-                 RETURNING ${favPropsSqlQuery}`;
+                 RETURNING ${savePropsSqlQuery}`;
 
     const values = [userId, locationId];
 
     const result = await db.query(query, values);
-    const fav = result.rows[0];
+    const save = result.rows[0];
 
-    return fav;
+    return save;
   }
 
   /** Delete
@@ -37,14 +37,14 @@ class LocationFavorite {
    * Throws NotFoundError if not found.
    */
   static async remove(userId, locationId) {
-    const querySql = `DELETE FROM location_favorites WHERE user_id = ${userId} AND location_id = ${locationId}`;
+    const querySql = `DELETE FROM location_saves WHERE user_id = ${userId} AND location_id = ${locationId}`;
 
     const result = await db.query(querySql);
 
     if (result.rowCount === 0) {
-      throw new NotFoundError(`No favorite found`);
+      throw new NotFoundError(`No save found`);
     }
   }
 }
 
-module.exports = LocationFavorite;
+module.exports = LocationSave;

@@ -13,7 +13,7 @@ const jsonschema = require("jsonschema");
 
 const Event = require("../models/event");
 const EventAttendee = require("../models/eventAttendee");
-const EventFavorite = require("../models/eventFavorite");
+const EventSave = require("../models/eventSave");
 const eventCreateSchema = require("../schemas/eventCreate.json");
 const eventUpdateSchema = require("../schemas/eventUpdate.json");
 const { ensureLoggedIn } = require("../middleware/auth");
@@ -71,16 +71,22 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  * @returns { id, title, description, date, location, createdBy, createdAt }
  * 
 // filters: 
-- showFavorites (returns only the events which are in Favorites),
+- showSaves (returns only the events which are in Saved),
 - showAttendingEvents (returns only the events which are in EventAttendees)
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
   // filters for query
-  const { showFavorites, showAttendingEvents } = req.query;
+  // query params are currently not parse and all returned as strings
+  const { showSaves, showAttendingEvents, showPastEvents } = req.query;
 
   try {
     // fetching all the events
-    const events = await Event.getAll(res.locals.user.id, showFavorites, showAttendingEvents);
+    const events = await Event.getAll({
+      userId: res.locals.user.id,
+      showSaves,
+      showAttendingEvents,
+      showPastEvents,
+    });
 
     return res.json({ data: events });
   } catch (err) {
@@ -199,13 +205,13 @@ router.delete(
 );
 
 /**
- * POST /[id]/favorite  Add event to favorites with data
+ * POST /[id]/saved  Add event to Saved with data
  *
  *  - Authorization required: logged in
  *
  *  * @returns { userId, eventId, createdAt }
  **/
-router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
   try {
     const event = await Event.get(req.params.id, res.locals.user.id);
 
@@ -213,21 +219,21 @@ router.post("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const favorite = await EventFavorite.add(res.locals.user.id, req.params.id);
-    return res.json({ data: favorite });
+    const save = await EventSave.add(res.locals.user.id, req.params.id);
+    return res.json({ data: save });
   } catch (err) {
     return next(err);
   }
 });
 
 /**
- * DELETE /[id]/favorite  Remove event from favorites
+ * DELETE /[id]/saved  Remove event from Saved
  *
  * - Authorization required: logged in
  *
  *
  **/
-router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:id/saved", ensureLoggedIn, async function (req, res, next) {
   try {
     const event = await Event.get(req.params.id, res.locals.user.id);
 
@@ -235,7 +241,7 @@ router.delete("/:id/favorite", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    await EventFavorite.remove(res.locals.user.id, req.params.id);
+    await EventSave.remove(res.locals.user.id, req.params.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);
