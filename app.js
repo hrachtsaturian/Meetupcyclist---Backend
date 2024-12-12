@@ -8,8 +8,12 @@ const { authenticateJWT } = require("./middleware/auth");
 const authRoutes = require("./routes/auth");
 const usersRoutes = require("./routes/users");
 const eventsRoutes = require("./routes/events")
+const eventPostsRoutes = require("./routes/eventPosts")
 const groupsRoutes = require("./routes/groups")
+const groupPostsRoutes = require("./routes/groupPosts")
 const locationsRoutes = require("./routes/locations")
+const locationReviewsRoutes = require("./routes/locationReviews")
+const uploadImage = require("./routes/uploadImage")
 
 const app = express();
 
@@ -27,8 +31,12 @@ app.use(function (req, res, next) {
 app.use("/", authRoutes);
 app.use("/users", usersRoutes);
 app.use("/events", eventsRoutes);
+app.use("/eventPosts", eventPostsRoutes);
 app.use("/groups", groupsRoutes);
+app.use("/groupPosts", groupPostsRoutes);
 app.use("/locations", locationsRoutes);
+app.use("/locationReviews", locationReviewsRoutes);
+app.use("/uploadImage", uploadImage);
 
 /** Handle 404 errors -- this matches everything */
 app.use(function (req, res, next) {

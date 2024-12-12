@@ -9,9 +9,40 @@ const membershipProps = [
   `created_at AS "createdAt"`,
 ];
 
-const membershipPropsSqlQuery = membershipProps.join(", ");
+const membershipPropsGet = [
+  `gm.user_id AS "userId"`,
+  `gm.group_id AS "groupId"`,
+  `gm.created_at AS "createdAt"`,
+  `u.first_name AS "firstName"`,
+  `u.last_name AS "lastName"`,
+  `u.email`,
+  `u.bio`,
+  `u.pfp_url AS "pfpUrl"`,
+  `u.is_admin AS "isAdmin"`,
+];
+
+const membershipPropsForUpdateSqlQuery = membershipProps.join(", ");
+const membershipPropsForReadSqlQuery = membershipPropsGet.join(", ");
 
 class GroupMember {
+  /** Get array of members of a single group.
+   *
+   * Returns [{ user_id, groupId, createdAt }, ...]
+   **/
+  static async get(groupId) {
+    const result = await db.query(
+      `SELECT ${membershipPropsForReadSqlQuery}
+        FROM group_members AS gm
+        JOIN users AS u 
+        ON gm.user_id = u.id
+        WHERE gm.group_id = $1`,
+      [groupId]
+    );
+    const groupMembers = result.rows;
+
+    return groupMembers;
+  }
+
   /** Join group with data.
    *
    * Returns { userId, groupId, createdAt }
@@ -21,7 +52,7 @@ class GroupMember {
                  (user_id,
                   group_id)
                  VALUES ($1, $2)
-                 RETURNING ${membershipPropsSqlQuery}`;
+                 RETURNING ${membershipPropsForUpdateSqlQuery}`;
 
     const values = [userId, groupId];
 

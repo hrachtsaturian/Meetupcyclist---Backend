@@ -6,11 +6,10 @@
       "title": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 30
+        "maxLength": 50
       },
       "description": {
-        "type": "string",
-        "maxLength": 90
+        "type": "string"
       },
       "date": {
         "type": "string",
@@ -19,6 +18,9 @@
       "location": {
         "type": "string",
         "description": "A human-readable address for the location."
+      },
+      "pfpUrl": {
+        "type": "string"
       }
     },
     "additionalProperties": false,
@@ -32,7 +34,8 @@
         "title": "Weekend Ride to the Hills",
         "description": "Join us for a thrilling ride to the hills and enjoy scenic views.",
         "date": "2024-12-02T09:00:00Z",
-        "location": "1234 Mountain Road, Hillview, CA 90210"
+        "location": "1234 Mountain Road, Hillview, CA 90210",
+        "pfpUrl": "https://example.com/event-pfp.jpg"
       }
     ]
   }

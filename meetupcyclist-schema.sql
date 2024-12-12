@@ -19,31 +19,11 @@ CREATE TABLE events (
   description TEXT,
   date TIMESTAMP WITH TIME ZONE NOT NULL,
   location TEXT NOT NULL,
+  pfp_url TEXT,
   created_by INT,
   FOREIGN KEY (created_by) REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
-
-CREATE TABLE groups (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  created_by INT,
-  FOREIGN KEY (created_by) REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE locations (
-  id SERIAL PRIMARY KEY,
-  name TEXT  NOT NULL,
-  description TEXT,
-  address TEXT NOT NULL,
-  created_by INT,
-  FOREIGN KEY (created_by) REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
--- delete these from database and recreate
 
 CREATE TABLE event_attendees (
   user_id INTEGER NOT NULL,
@@ -54,13 +34,15 @@ CREATE TABLE event_attendees (
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
-CREATE TABLE group_members (
+CREATE TABLE event_posts (
+  id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL,
-  group_id INTEGER NOT NULL,
+  event_id INTEGER NOT NULL,
+  text VARCHAR(500),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (user_id, group_id),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
 CREATE TABLE event_saves (
@@ -72,6 +54,45 @@ CREATE TABLE event_saves (
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
+CREATE TABLE groups (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  pfp_url TEXT,
+  created_by INT,
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE group_members (
+  user_id INTEGER NOT NULL,
+  group_id INTEGER NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, group_id),
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+
+CREATE TABLE group_events (
+  event_id INTEGER NOT NULL,
+  group_id INTEGER NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (event_id, group_id),
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+)
+
+CREATE TABLE group_posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  group_id INTEGER NOT NULL,
+  text VARCHAR(500),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+)
+
 CREATE TABLE group_saves (
   user_id INTEGER NOT NULL,
   group_id INTEGER NOT NULL,
@@ -80,6 +101,29 @@ CREATE TABLE group_saves (
   FOREIGN KEY (user_id) REFERENCES users(id), 
   FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
 );
+
+CREATE TABLE locations (
+  id SERIAL PRIMARY KEY,
+  name TEXT  NOT NULL,
+  description TEXT,
+  address TEXT NOT NULL,
+  pfp_url TEXT,
+  created_by INT,
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE location_reviews (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  location_id INTEGER NOT NULL,
+  text VARCHAR(500),
+  rate INTEGER NOT NULL CHECK (rate BETWEEN 1 AND 5),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE
+)
 
 CREATE TABLE location_saves (
   user_id INTEGER NOT NULL,

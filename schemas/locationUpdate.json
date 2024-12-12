@@ -9,12 +9,14 @@
         "maxLength": 30
       },
       "description": {
-        "type": "string",
-        "maxLength": 90
+        "type": "string"
       },
       "address": {
         "type": "string",
         "description": "A human-readable address."
+      },
+      "pfpUrl": {
+        "type": "string"
       }
     },
     "additionalProperties": false,
@@ -23,7 +25,8 @@
       {
         "name": "Sunrise Park",
         "description": "A scenic park perfect for early morning meetups.",
-        "address": "123 Parkside Lane, Springfield, IL 62701"
+        "address": "123 Parkside Lane, Springfield, IL 62701",
+        "pfpUrl": "https://example.com/location-pfp.jpg"
       }
     ]
   }

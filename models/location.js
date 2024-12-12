@@ -9,6 +9,7 @@ const locationProps = [
   `name`,
   `description`,
   `address`,
+  `pfp_url AS "pfpUrl"`,
   `created_by AS "createdBy"`,
   `created_at AS "createdAt"`,
 ];
@@ -18,6 +19,7 @@ const locationPropsGet = [
   `l.name`,
   `l.description`,
   `l.address`,
+  `l.pfp_url AS "pfpUrl"`,
   `l.created_by AS "createdBy"`,
   `l.created_at AS "createdAt"`,
   `u.first_name AS "firstName"`,
@@ -31,18 +33,19 @@ const locationPropsForReadSqlQuery = locationPropsGet.join(", ");
 class Location {
   /** Create location with data.
    *
-   * Returns { id, name, description, address, createdBy, createdAt }
+   * Returns { id, name, description, address, pfpUrl, createdBy, createdAt }
    **/
-  static async create({ name, description, address, createdBy }) {
+  static async create({ name, description, address, pfpUrl, createdBy }) {
     const result = await db.query(
       `INSERT INTO locations 
                  (name,
                   description, 
                   address,
+                  pfp_url,
                   created_by)
-                 VALUES ($1, $2, $3, $4)
+                 VALUES ($1, $2, $3, $4, $5)
                  RETURNING ${locationPropsForUpdateSqlQuery}`,
-      [name, description, address, createdBy]
+      [name, description, address, pfpUrl, createdBy]
     );
 
     const location = result.rows[0];
@@ -52,7 +55,7 @@ class Location {
 
   /** Given an id, return a single location record.
    *
-   * Returns { id, name, description, address, createdBy, createdAt }
+   * Returns { id, name, description, address, pfpUrl, createdBy, createdAt }
    *
    * Throws NotFoundError if location not found.
    **/
@@ -77,12 +80,12 @@ class Location {
 
   /** Return array of locations.
    *
-   * Returns data: [ {id, name, description, address, createdBy, createdAt}, ...]
+   * Returns data: [ {id, name, description, address, pfpUrl, createdBy, createdAt}, ...]
    * 
    // filters: 
-   - showSaves (returns only the locations which are in Saved)
+   - isSaved (returns only the locations which are in Saved)
    **/
-  static async getAll(userId, showSaves) {
+  static async getAll({ userId, isSaved }) {
     let query = `SELECT ${locationPropsForReadSqlQuery},
         CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved"
       FROM locations AS l
@@ -93,11 +96,11 @@ class Location {
   `;
 
     // Add condition for filtering
-    if (showSaves === "true") {
+    if (isSaved === "true") {
       query += " WHERE ls.user_id IS NOT NULL";
     }
 
-     query = query + ' ORDER by l.created_at DESC'
+     query = query + ' ORDER BY l.created_at DESC'
 
     const locationRes = await db.query(query);
 
@@ -112,14 +115,16 @@ class Location {
    * all the fields; this only changes provided ones.
    *
    * Data can include:
-   *   { name, description, address }
+   *   { name, description, address, pfpUrl }
    *
-   * Returns { id, name, description, address, createdBy, createdAt }
+   * Returns { id, name, description, address, pfpUrl, createdBy, createdAt }
    *
    * Throws NotFoundError if not found.
    */
   static async update(id, data) {
-    const { setCols, values } = sqlForPartialUpdate(data);
+    const { setCols, values } = sqlForPartialUpdate(data, {
+      pfpUrl: "pfp_url"
+    });
 
     const querySql = `UPDATE locations
                       SET ${setCols}
