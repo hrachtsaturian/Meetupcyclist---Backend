@@ -8,6 +8,7 @@ const groupProps = [
   `id`,
   `name`,
   `description`,
+  `pfp_url AS "pfpUrl"`,
   `created_by AS "createdBy"`,
   `created_at AS "createdAt"`,
 ];
@@ -16,6 +17,7 @@ const groupPropsGet = [
   `g.id`,
   `g.name`,
   `g.description`,
+  `g.pfp_url AS "pfpUrl"`,
   `g.created_by AS "createdBy"`,
   `g.created_at AS "createdAt"`,
   `u.first_name AS "firstName"`,
@@ -29,17 +31,18 @@ const groupPropsForReadSqlQuery = groupPropsGet.join(", ");
 class Group {
   /** Create group with data.
    *
-   * Returns { id, name, description, createdBy, createdAt }
+   * Returns { id, name, description, pfpUrl, createdBy, createdAt }
    **/
-  static async create({ name, description, createdBy }) {
+  static async create({ name, description, pfpUrl, createdBy }) {
     const result = await db.query(
       `INSERT INTO groups 
                  (name,
-                  description, 
+                  description,
+                  pfp_url, 
                   created_by)
-                 VALUES ($1, $2, $3)
+                 VALUES ($1, $2, $3, $4)
                  RETURNING ${groupPropsForUpdateSqlQuery}`,
-      [name, description, createdBy]
+      [name, description, pfpUrl, createdBy]
     );
 
     const group = result.rows[0];
@@ -49,7 +52,7 @@ class Group {
 
   /** Given an id, return a single group record.
    *
-   * Returns { id, name, description, createdBy, createdAt }
+   * Returns { id, name, description, pfpUrl, createdBy, createdAt }
    *
    * Throws NotFoundError if group not found.
    **/
@@ -58,7 +61,8 @@ class Group {
       SELECT 
         ${groupPropsForReadSqlQuery},
         CASE WHEN gs.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
-        CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+        CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined",
+        COALESCE((SELECT COUNT(*) FROM group_members AS gm WHERE gm.group_id = g.id), 0) ::integer AS "membersCount"
       FROM groups AS g
       JOIN users AS u 
         ON g.created_by = u.id
@@ -77,18 +81,19 @@ class Group {
 
   /** Return array of groups.
    *
-   * Returns data: [ {id, name, description, createdBy, createdAt}, ...]
+   * Returns data: [ {id, name, description, pfpUrl, createdBy, createdAt}, ...]
    * 
    // filters: 
-   - showSaves (returns only the groups which are in Saved),
-   - showJoinedGroups (returns only the groups which are in GroupMembers)
+   - isSaved (returns only the groups which are in Saved),
+   - isJoined (returns only the groups which are in GroupMembers)
    **/
-  static async getAll(userId, showSaves, showJoinedGroups) {
+  static async getAll(userId, isSaved, isJoined) {
     let query = `
       SELECT 
         ${groupPropsForReadSqlQuery},
         CASE WHEN gs.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
-        CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined"
+        CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined",
+        COALESCE((SELECT COUNT(*) FROM group_members AS gm WHERE gm.group_id = g.id), 0) ::integer AS "membersCount"
       FROM groups AS g
       JOIN users AS u 
         ON g.created_by = u.id
@@ -99,16 +104,16 @@ class Group {
     `;
 
     // Add condition for filtering 
-    if (showSaves === "true") {
+    if (isSaved === "true") {
       query += ' WHERE gs.user_id IS NOT NULL';
     }
 
-    if (showJoinedGroups === "true") {
+    if (isJoined === "true") {
       query += ' WHERE gm.user_id IS NOT NULL';
     }
 
     // order by group members number - highest to lowest
-    query = query + ' ORDER by g.created_at DESC';
+    query = query + ' ORDER BY "membersCount" DESC, g.created_at DESC';
 
     const groupRes = await db.query(query);
 
@@ -123,14 +128,16 @@ class Group {
    * all the fields; this only changes provided ones.
    *
    * Data can include:
-   *   { name, description }
+   *   { name, description, pfpUrl }
    *
-   * Returns { id, name, description, createdBy, createdAt }
+   * Returns { id, name, description, pfpUrl, createdBy, createdAt }
    *
    * Throws NotFoundError if not found.
    */
   static async update(id, data) {
-    const { setCols, values } = sqlForPartialUpdate(data);
+    const { setCols, values } = sqlForPartialUpdate(data, {
+      pfpUrl: "pfp_url"
+    });
 
     const querySql = `UPDATE groups
                       SET ${setCols}

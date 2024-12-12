@@ -9,8 +9,10 @@
         "maxLength": 30
       },
       "description": {
-        "type": "string",
-        "maxLength": 90
+        "type": "string"
+      },
+      "pfpUrl": {
+        "type": "string"
       }
     },
     "additionalProperties": false,
@@ -18,7 +20,8 @@
     "examples": [
       {
         "name": "Offroad Adventure",
-        "description": "Explore rugged trails and enjoy breathtaking views."
+        "description": "Explore rugged trails and enjoy breathtaking views.",
+        "pfpUrl": "https://example.com/group-pfp.jpg"
       }
     ]
   }

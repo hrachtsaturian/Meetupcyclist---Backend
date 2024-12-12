@@ -6,12 +6,43 @@ const { NotFoundError } = require("../expressError.js");
 const attendanceProps = [
   `user_id AS "userId"`,
   `event_id AS "eventId"`,
-  `created_at AS "createdAt"`,
+  `created_at AS "createdAt"`
 ];
 
-const attendancePropsSqlQuery = attendanceProps.join(", ");
+const attendancePropsGet = [
+  `ea.user_id AS "userId"`,
+  `ea.event_id AS "eventId"`,
+  `ea.created_at AS "createdAt"`,
+  `u.first_name AS "firstName"`,
+  `u.last_name AS "lastName"`,
+  `u.email`,
+  `u.bio`,
+  `u.pfp_url AS "pfpUrl"`,
+  `u.is_admin AS "isAdmin"`,
+];
+
+const attendancePropsForUpdateSqlQuery = attendanceProps.join(", ");
+const attendancePropsForReadSqlQuery = attendancePropsGet.join(", ");
 
 class EventAttendee {
+  /** Get array of attendees of a single event.
+   *
+   * Returns [{ user_id, eventId, createdAt }, ...]
+   **/
+    static async get(eventId) {
+      const result = await db.query(
+        `SELECT ${attendancePropsForReadSqlQuery}
+          FROM event_attendees AS ea
+          JOIN users AS u 
+          ON ea.user_id = u.id
+          WHERE ea.event_id = $1`,
+        [eventId]
+      );
+      const eventAttendees = result.rows;
+  
+      return eventAttendees;
+    }
+    
   /** Sign up for event with data.
    *
    * Returns { userId, eventId, createdAt }
@@ -21,7 +52,7 @@ class EventAttendee {
                  (user_id,
                   event_id)
                  VALUES ($1, $2)
-                 RETURNING ${attendancePropsSqlQuery}`;
+                 RETURNING ${attendancePropsForUpdateSqlQuery}`;
 
     const values = [userId, eventId];
 

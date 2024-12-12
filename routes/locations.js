@@ -6,7 +6,6 @@ const express = require("express");
 const router = new express.Router();
 const {
   BadRequestError,
-  // UnauthorizedError,
   NotFoundError,
 } = require("../expressError");
 const jsonschema = require("jsonschema");
@@ -16,13 +15,14 @@ const LocationSave = require("../models/locationSave");
 const locationCreateSchema = require("../schemas/locationCreate.json");
 const locationUpdateSchema = require("../schemas/locationUpdate.json");
 const { ensureLoggedIn, ensureIsAdmin } = require("../middleware/auth");
+const LocationReview = require("../models/locationReview");
 
 /**
- * POST / :  { name, description, address } => { location }
+ * POST /   { name, description, address, pffUrl } => { location }
  *
  *  - Authorization required: logged in and is admin
  *
- *  * @returns { id, name, description, address, createdBy, createdAt }
+ *  * @returns { id, name, description, address, pfpUrl, createdBy, createdAt }
  **/
 router.post(
   "/",
@@ -36,11 +36,12 @@ router.post(
         throw new BadRequestError(errs);
       }
 
-      const { name, description, address } = req.body;
+      const { name, description, address, pfpUrl } = req.body;
       const location = await Location.create({
         name,
         description,
         address,
+        pfpUrl,
         createdBy: res.locals.user.id,
       });
       return res.json({ data: location });
@@ -55,7 +56,7 @@ router.post(
  *
  * - Authorization required: logged in
  *
- * @returns { id, name, description, address, createdBy, createdAt }
+ * @returns { id, name, description, address, pfpUrl, createdBy, createdAt }
  **/
 router.get("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
@@ -71,28 +72,19 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  *
  * - Authorization required: logged in
  *
- * @returns { id, name, description, address, createdBy, createdAt }
+ * @returns { id, name, description, address, pfpUrl, createdBy, createdAt }
   // filters: 
-- showSaves (returns only the groups which are in Saved)
+- isSaved (returns only the groups which are in Saved)
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
   // filter for query
-  const { showSaves } = req.query;
+  const { isSaved } = req.query;
 
   try {
     // fetching all the locations
-    const locations = await Location.getAll(res.locals.user.id);
+    const locations = await Location.getAll({ userId: res.locals.user.id, isSaved });
 
-    // showSaves filter
-    let filteredLocations = locations;
-    if (showSaves === "true") {
-      filteredLocations = locations.filter(
-        (location) =>
-          location.isSaved === true && location.userId === res.locals.user.id
-      );
-    }
-
-    return res.json({ data: filteredLocations });
+    return res.json({ data: locations });
   } catch (err) {
     return next(err);
   }
@@ -102,11 +94,11 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
  * PATCH /[id] { location } => { location }
  *
  * - Data can include:
- *   { name, description, address }
+ *   { name, description, address, pfpUrl }
  *
  * - Authorization required: logged in and is admin
  *
- * @returns { id, name, description, address, createdBy, createdAt }
+ * @returns { id, name, description, address, pfpUrl, createdBy, createdAt }
  *
  **/
 router.patch(
@@ -156,6 +148,59 @@ router.delete(
     }
   }
 );
+
+/**
+ * POST /[id]/reviews  Make a review for a location
+ *
+ *  - Authorization required: logged in
+ *
+ *  * @returns { id, userId, locationId, text, rate, createdAt, updatedAt }
+ **/
+router.post("/:id/reviews", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const location = await Location.get(req.params.id, res.locals.user.id);
+
+    if (!location) {
+      throw new NotFoundError();
+    }
+
+    const { text, rate } = req.body;
+
+    const review = await LocationReview.create(
+      res.locals.user.id,
+      req.params.id,
+      text,
+      rate
+    );
+    return res.json({ data: review });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+/**
+ * GET /[id]/reviews   =>  [{ review }, ...]
+ *
+ * - Authorization required: logged in
+ *
+ * @returns { id, userId, locationId, text, rate, createdAt, updatedAt }
+ **/
+router.get("/:id/reviews", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const location = await Location.get(req.params.id, res.locals.user.id);
+
+    if (!location) {
+      throw new NotFoundError();
+    }
+
+    // fetching all the reviews
+    const reviews = await LocationReview.getAll(req.params.id);
+
+    return res.json({ data: reviews });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 /**
  * POST /[id]/saved  Add location to Saved with data

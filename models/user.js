@@ -82,9 +82,8 @@ class User {
             email,
             password,
             bio,
-            pfp_url,
-            isAdmin)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+            pfp_url)
+           VALUES ($1, $2, $3, $4, $5, $6)
            RETURNING ${userPropsSqlQuery}`,
       [firstName, lastName, email, hashedPassword, bio, pfpUrl]
     );
@@ -149,9 +148,7 @@ class User {
     const { setCols, values } = sqlForPartialUpdate(data, {
       firstName: "first_name",
       lastName: "last_name",
-      pfpUrl: "pfp_url",
-      isAdmin: "is_admin",
-      createdAt: "created_at"
+      pfpUrl: "pfp_url"
     });
 
     const querySql = `UPDATE users
