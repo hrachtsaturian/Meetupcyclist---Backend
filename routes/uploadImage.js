@@ -14,9 +14,12 @@ const storage = new Storage();
 const BUCKET_NAME = 'meetupcyclist';
 
 router.post("/", ensureLoggedIn, upload.single('image'), async function (req, res, next) {
-  const filePath = req.file.path;
+  const filePath = req?.file?.path;
   const destFileName = uuidv4();
   try {
+    if (!filePath || typeof filePath !== 'string') {
+      throw new BadRequestError('No file uploaded')
+    }
     // throw error if file is > 5MB
     if (req.file.size > 5 * 1024 * 1024) {
       throw new BadRequestError('File is too large')
