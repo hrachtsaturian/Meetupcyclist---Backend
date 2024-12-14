@@ -22,7 +22,7 @@ const eventPostPropsGet = [
     `u.first_name AS "firstName"`,
     `u.last_name AS "lastName"`,
     `u.pfp_url AS "pfpUrl"`,
-    `e.created_by AS "createdBy"`
+    `e.created_by AS "eventOrganizer"`
 ];
 
 const eventPostPropsForUpdateSqlQuery = eventPostProps.join(", ");

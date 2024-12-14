@@ -217,8 +217,6 @@ class Event {
    */
   static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(data, {
-      title: "title",
-      description: "description",
       pfpUrl: "pfp_url",
     });
 

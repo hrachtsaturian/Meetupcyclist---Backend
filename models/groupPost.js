@@ -22,7 +22,7 @@ const groupPostPropsGet = [
   `u.first_name AS "firstName"`,
   `u.last_name AS "lastName"`,
   `u.pfp_url AS "pfpUrl"`,
-  `g.created_by AS "createdBy"`
+  `g.created_by AS "groupAdmin"`
 ];
 
 const groupPostPropsForUpdateSqlQuery = groupPostProps.join(", ");
@@ -79,8 +79,8 @@ class GroupPost {
                 ON gp.user_id = u.id
             JOIN groups AS g
                 ON gp.group_id = g.id
-                WHERE gp.group_id = ${groupId}
-                ORDER BY gp.created_at DESC`
+      WHERE gp.group_id = ${groupId}
+      ORDER BY gp.created_at DESC`
     );
 
     const groupPosts = groupPostRes.rows;
