@@ -10,7 +10,7 @@ const { BadRequestError } = require("../expressError");
 
 const upload = multer({ dest: 'uploads/' })
 const router = new express.Router();
-const storage = new Storage();
+const storage = new Storage({ keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS });
 const BUCKET_NAME = 'meetupcyclist';
 
 router.post("/", ensureLoggedIn, upload.single('image'), async function (req, res, next) {
