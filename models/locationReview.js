@@ -58,7 +58,7 @@ class LocationReview {
     static async getById(id) {
         const res = await db.query(
             `SELECT ${locationReviewPropsForUpdateSqlQuery}
-        FROM location_reviews
+            FROM location_reviews
             WHERE id = ${id}`
         );
 
@@ -76,7 +76,7 @@ class LocationReview {
     static async getAll(locationId) {
         const locationReviewRes = await db.query(
             `SELECT ${locationReviewPropsForReadSqlQuery}
-        FROM location_reviews AS lr
+            FROM location_reviews AS lr
             JOIN users AS u
                 ON lr.user_id = u.id
                 WHERE lr.location_id = ${locationId}
