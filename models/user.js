@@ -20,6 +20,7 @@ const userProps = [
   `pfp_url AS "pfpUrl"`,
   `is_admin AS "isAdmin"`,
   `created_at AS "createdAt"`,
+  `deactivated_at AS "deactivatedAt"`,
 ]
 
 const userPropsSqlQuery = userProps.join(', ');
@@ -40,6 +41,10 @@ class User {
     );
 
     const user = result.rows[0];
+
+    if (user.deactivatedAt) {
+      throw new UnauthorizedError("User is deactivated");
+    }
 
     if (user) {
       // compare hashed password to a new hash from password
@@ -148,7 +153,9 @@ class User {
     const { setCols, values } = sqlForPartialUpdate(data, {
       firstName: "first_name",
       lastName: "last_name",
-      pfpUrl: "pfp_url"
+      pfpUrl: "pfp_url",
+      // only for admin
+      deactivatedAt: "deactivated_at",
     });
 
     const querySql = `UPDATE users

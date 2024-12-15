@@ -9,6 +9,17 @@ const GroupPost = require("../models/groupPost");
 const Group = require("../models/group");
 
 const router = new express.Router();
+
+router.get("/recent", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const posts = await GroupPost.getRecent(res.locals.user.id);
+
+    return res.json({ data: posts });
+  } catch (err) {
+    return next(err);
+  }
+});
+
 /**
  * PATCH /[id] { post } => { post }
  *
