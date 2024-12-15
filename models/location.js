@@ -24,7 +24,7 @@ const locationPropsGet = [
   `l.created_at AS "createdAt"`,
   `u.first_name AS "firstName"`,
   `u.last_name AS "lastName"`,
-  `u.id AS "userId"`, 
+  `u.id AS "userId"`,
 ];
 
 const locationPropsForUpdateSqlQuery = locationProps.join(", ");
@@ -62,7 +62,9 @@ class Location {
   static async get(id, userId) {
     const locationRes = await db.query(`
       SELECT ${locationPropsForReadSqlQuery},
-        CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved"
+        CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
+        COALESCE((SELECT COUNT(*) FROM location_reviews AS lr WHERE lr.location_id = l.id), 0) ::integer AS "reviewsCount",
+        COALESCE(ROUND((SELECT AVG(rate) FROM location_reviews AS lr WHERE lr.location_id = l.id), 1), 0) AS "avgRating"
       FROM locations AS l
       JOIN users AS u 
         ON l.created_by = u.id
@@ -87,7 +89,9 @@ class Location {
    **/
   static async getAll({ userId, isSaved }) {
     let query = `SELECT ${locationPropsForReadSqlQuery},
-        CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved"
+        CASE WHEN ls.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
+        COALESCE((SELECT COUNT(*) FROM location_reviews AS lr WHERE lr.location_id = l.id), 0) ::integer AS "reviewsCount",
+        COALESCE(ROUND((SELECT AVG(rate) FROM location_reviews AS lr WHERE lr.location_id = l.id), 1), 0) AS "avgRating"
       FROM locations AS l
       JOIN users AS u 
         ON l.created_by = u.id
@@ -100,7 +104,8 @@ class Location {
       query += " WHERE ls.user_id IS NOT NULL";
     }
 
-     query = query + ' ORDER BY l.created_at DESC'
+    // ordery by avgRating - highest to lowest
+    query = query + ' ORDER BY "avgRating" DESC, l.created_at DESC'
 
     const locationRes = await db.query(query);
 
