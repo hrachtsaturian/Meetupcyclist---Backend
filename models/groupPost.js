@@ -22,6 +22,7 @@ const groupPostPropsGet = [
   `u.first_name AS "firstName"`,
   `u.last_name AS "lastName"`,
   `u.pfp_url AS "pfpUrl"`,
+  `g.name AS "groupName"`,
   `g.created_by AS "groupAdmin"`
 ];
 
@@ -65,6 +66,28 @@ class GroupPost {
     if (!groupPost) throw new NotFoundError(`No post found`);
 
     return groupPost;
+  }
+
+  // get 20 most recent posts from group that user is in 
+
+  static async getRecent(userId) {
+    const groupPostRes = await db.query(
+      `SELECT ${groupPostPropsForReadSqlQuery}
+        FROM group_posts AS gp
+            JOIN users AS u
+                ON gp.user_id = u.id
+            JOIN groups AS g
+                ON gp.group_id = g.id
+            JOIN group_members AS gm
+                ON gp.group_id = gm.group_id
+      WHERE gm.user_id = ${userId}
+      ORDER BY gp.created_at DESC
+      LIMIT 20`
+    );
+
+    const groupPosts = groupPostRes.rows;
+
+    return groupPosts || [];
   }
 
   /** Return array of group posts.

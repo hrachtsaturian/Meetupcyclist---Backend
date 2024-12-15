@@ -86,13 +86,13 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
   // query params are currently not parse and all returned as strings
   const { filter: { isSaved, isAttending, minDate, maxDate, createdBy } = {} } = req.query;
   const filter = {
-    isSaved: isSaved === "true",
-    isAttending: isAttending === "true",
+    isSaved: isSaved === "true", // currently only supports true
+    isAttending: isAttending === "true", // currently only supports true
     // ensure the date is valid date string
     minDate: !isNaN(Date.parse(minDate)) ? new Date(minDate) : null,
     // ensure the date is valid date string
     maxDate: !isNaN(Date.parse(maxDate)) ? new Date(maxDate) : null,
-    createdBy, // ??
+    createdBy,
   }
 
   const sort = {
@@ -162,13 +162,15 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
     const event = await Event.get(req.params.id, res.locals.user.id);
 
-    if (event.createdBy?.toString() !== res.locals.user.id.toString()) {
-      throw new UnauthorizedError();
+    const isEventOrganizer = event.createdBy?.toString() === res.locals.user.id.toString();
+    const isAdmin = res.locals.user.isAdmin;
+
+    if (isEventOrganizer || isAdmin) {
+      await Event.delete(req.params.id);
+      return res.status(204).send();
     }
 
-    await Event.delete(req.params.id);
-
-    return res.status(204).send();
+    throw new UnauthorizedError();
   } catch (err) {
     return next(err);
   }

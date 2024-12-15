@@ -9,6 +9,7 @@ CREATE TABLE users (
   pfp_url TEXT,
   is_admin BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  deactivated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 -- add admin user when seeding db?

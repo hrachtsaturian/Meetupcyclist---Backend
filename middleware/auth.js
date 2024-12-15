@@ -5,6 +5,7 @@
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = require("../config");
 const { UnauthorizedError, ForbiddenError } = require("../expressError");
+const User = require("../models/user");
 
 /** Middleware: Authenticate user.
  *
@@ -13,13 +14,19 @@ const { UnauthorizedError, ForbiddenError } = require("../expressError");
  *
  * It's not an error if no token was provided or if the token is not valid.
  */
-function authenticateJWT(req, res, next) {
+async function authenticateJWT(req, res, next) {
   try {
     const authHeader = req.headers && req.headers.authorization;
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim(); // authorization: "Bearer {{jwt}}"
       res.locals.user = jwt.verify(token, SECRET_KEY);
+      const user = await User.get(res.locals?.user?.id);
+
+      if (user?.deactivatedAt) {
+        throw new UnauthorizedError("User is deactivated");
+      }
     }
+
     return next();
   } catch (err) {
     return next(err);

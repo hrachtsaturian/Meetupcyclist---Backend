@@ -64,14 +64,13 @@ class Group {
         CASE WHEN gm.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isJoined",
         COALESCE((SELECT COUNT(*) FROM group_members AS gm WHERE gm.group_id = g.id), 0) ::integer AS "membersCount"
       FROM groups AS g
-      JOIN users AS u 
+      JOIN users AS u
         ON g.created_by = u.id
       LEFT JOIN group_saves AS gs
         ON g.id = gs.group_id AND gs.user_id = ${userId}
-      LEFT JOIN group_members AS gm 
+      LEFT JOIN group_members AS gm
         ON g.id = gm.group_id AND gm.user_id = ${userId}
-      WHERE g.id = ${id}`
-    );
+      WHERE g.id = ${id}`);
 
     const group = groupRes.rows[0];
 
@@ -87,7 +86,10 @@ class Group {
    - isSaved (returns only the groups which are in Saved),
    - isJoined (returns only the groups which are in GroupMembers)
    **/
-  static async getAll(userId, isSaved, isJoined) {
+  static async getAll({
+    userId,
+    filter: { isSaved = null, isJoined = null, createdBy = null } = {},
+  }) {
     let query = `
       SELECT 
         ${groupPropsForReadSqlQuery},
@@ -103,19 +105,32 @@ class Group {
         ON g.id = gm.group_id AND gm.user_id = ${userId}
     `;
 
-    // Add condition for filtering 
-    if (isSaved === "true") {
-      query += ' WHERE gs.user_id IS NOT NULL';
+    let conditions = [];
+    let params = [];
+
+    // Add condition for filtering
+    if (isSaved) {
+      conditions.push("gs.user_id IS NOT NULL");
     }
 
-    if (isJoined === "true") {
-      query += ' WHERE gm.user_id IS NOT NULL';
+    if (isJoined) {
+      conditions.push("gm.user_id IS NOT NULL");
     }
+
+    if (createdBy) {
+      params.push(createdBy);
+      conditions.push(`g.created_by = $${params.length}`);
+    }
+
+    const whereClause =
+      conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
+
+    const sortClause = ` ORDER BY "membersCount" DESC, g.created_at DESC`;
 
     // order by group members number - highest to lowest
-    query = query + ' ORDER BY "membersCount" DESC, g.created_at DESC';
+    query = query + whereClause + sortClause;
 
-    const groupRes = await db.query(query);
+    const groupRes = await db.query(query, params);
 
     const groups = groupRes.rows;
 
@@ -136,7 +151,7 @@ class Group {
    */
   static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(data, {
-      pfpUrl: "pfp_url"
+      pfpUrl: "pfp_url",
     });
 
     const querySql = `UPDATE groups

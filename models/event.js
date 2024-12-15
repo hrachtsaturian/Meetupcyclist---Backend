@@ -139,8 +139,8 @@ class Event {
   static async getAll({
     userId,
     filter: {
-      isSaved = false,
-      isAttending = false,
+      isSaved = null,
+      isAttending = null,
       minDate = null,
       maxDate = null,
       createdBy = null,

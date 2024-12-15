@@ -82,11 +82,16 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
  **/
 router.get("/", ensureLoggedIn, async function (req, res, next) {
   // filters for query
-  const { isSaved, isJoined } = req.query;
+  const { isSaved, isJoined, createdBy } = req.query;
+  const filter = {
+    isSaved: isSaved === "true", // currently only supports true
+    isJoined: isJoined === "true", // currently only supports true
+    createdBy,
+  }
 
   try {
     // fetching all the groups
-    const groups = await Group.getAll(res.locals.user.id, isSaved, isJoined);
+    const groups = await Group.getAll({ userId: res.locals.user.id, filter });
 
     return res.json({ data: groups });
   } catch (err) {
@@ -140,13 +145,16 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
     const group = await Group.get(req.params.id, res.locals.user.id);
 
-    if (group.createdBy?.toString() !== res.locals.user.id.toString()) {
-      throw new UnauthorizedError();
+    const isGroupAdmin = group.createdBy?.toString() === res.locals.user.id.toString();
+    const isAdmin = res.locals.user.isAdmin;
+
+
+    if (isGroupAdmin || isAdmin) {
+      await Group.delete(req.params.id);
+      return res.status(204).send();
     }
 
-    await Group.delete(req.params.id);
-
-    return res.status(204).send();
+    throw new UnauthorizedError();
   } catch (err) {
     return next(err);
   }
