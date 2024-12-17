@@ -10,6 +10,14 @@ const Group = require("../models/group");
 
 const router = new express.Router();
 
+/**
+ * GET /recent [{ post }, ...]
+ *
+ * - Authorization required: logged in
+ *
+ * @returns { id, userId, groupId, text, createdAt, updatedAt }
+ *
+ **/
 router.get("/recent", ensureLoggedIn, async function (req, res, next) {
   try {
     const posts = await GroupPost.getRecent(res.locals.user.id);
@@ -63,8 +71,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
     const isAdmin = res.locals.user.isAdmin;
     const isGroupOwner =
       group.createdBy?.toString() === res.locals.user.id.toString();
-    const isAuthor =
-      post.userId?.toString() === res.locals.user.id.toString();
+    const isAuthor = post.userId?.toString() === res.locals.user.id.toString();
 
     if (!isAdmin && !isGroupOwner && !isAuthor) {
       throw new UnauthorizedError();

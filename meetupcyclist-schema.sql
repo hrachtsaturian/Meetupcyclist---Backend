@@ -8,11 +8,9 @@ CREATE TABLE users (
   bio TEXT,
   pfp_url TEXT,
   is_admin BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   deactivated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
-
--- add admin user when seeding db?
 
 CREATE TABLE events (
   id SERIAL PRIMARY KEY,
@@ -81,7 +79,7 @@ CREATE TABLE group_events (
   PRIMARY KEY (event_id, group_id),
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
   FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
-)
+);
 
 CREATE TABLE group_posts (
   id SERIAL PRIMARY KEY,
@@ -92,7 +90,7 @@ CREATE TABLE group_posts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
-)
+);
 
 CREATE TABLE group_saves (
   user_id INTEGER NOT NULL,
@@ -124,7 +122,7 @@ CREATE TABLE location_reviews (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE CASCADE
-)
+);
 
 CREATE TABLE location_saves (
   user_id INTEGER NOT NULL,

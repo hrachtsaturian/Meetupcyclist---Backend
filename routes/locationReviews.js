@@ -20,21 +20,25 @@ const router = new express.Router();
  *
  **/
 router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
-    try {
-        const review = await LocationReview.getById(req.params.id);
+  try {
+    const review = await LocationReview.getById(req.params.id);
 
-        if (review.userId !== res.locals.user.id) {
-            throw new UnauthorizedError();
-        }
-
-        const { text, rate } = req.body;
-
-        const updatedReview = await LocationReview.update(req.params.id, text, rate);
-
-        return res.json({ data: updatedReview });
-    } catch (err) {
-        return next(err);
+    if (review.userId !== res.locals.user.id) {
+      throw new UnauthorizedError();
     }
+
+    const { text, rate } = req.body;
+
+    const updatedReview = await LocationReview.update(
+      req.params.id,
+      text,
+      rate
+    );
+
+    return res.json({ data: updatedReview });
+  } catch (err) {
+    return next(err);
+  }
 });
 
 /**
@@ -44,23 +48,23 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
  *
  **/
 router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
-    try {
-        const review = await LocationReview.getById(req.params.id);
+  try {
+    const review = await LocationReview.getById(req.params.id);
 
-        const isAdmin = res.locals.user.isAdmin;
-        const isAuthor =
-            review.userId?.toString() === res.locals.user.id.toString();
+    const isAdmin = res.locals.user.isAdmin;
+    const isAuthor =
+      review.userId?.toString() === res.locals.user.id.toString();
 
-        if (!isAdmin && !isAuthor) {
-            throw new UnauthorizedError();
-        }
-
-        await LocationReview.delete(req.params.id);
-
-        return res.status(204).send();
-    } catch (err) {
-        return next(err);
+    if (!isAdmin && !isAuthor) {
+      throw new UnauthorizedError();
     }
+
+    await LocationReview.delete(req.params.id);
+
+    return res.status(204).send();
+  } catch (err) {
+    return next(err);
+  }
 });
 
 module.exports = router;

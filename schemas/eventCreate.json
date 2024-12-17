@@ -1,42 +1,38 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://example.com/example.json",
-    "type": "object",
-    "properties": {
-      "title": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 50
-      },
-      "description": {
-        "type": "string"
-      },
-      "date": {
-        "type": "string",
-        "format": "date-time"
-      },
-      "location": {
-        "type": "string",
-        "description": "A human-readable address for the location."
-      },
-      "pfpUrl": {
-        "type": "string"
-      }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50
     },
-    "additionalProperties": false,
-    "required": [
-      "title",
-      "date",
-      "location"
-    ],
-    "examples": [
-      {
-        "title": "Weekend Ride to the Hills",
-        "description": "Join us for a thrilling ride to the hills and enjoy scenic views.",
-        "date": "2024-12-02T09:00:00Z",
-        "location": "1234 Mountain Road, Hillview, CA 90210",
-        "pfpUrl": "https://example.com/event-pfp.jpg"
-      }
-    ]
-  }
-  
+    "description": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "location": {
+      "type": "string",
+      "minLength": 1,
+      "description": "A human-readable address for the location."
+    },
+    "pfpUrl": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["title", "date", "location"],
+  "examples": [
+    {
+      "title": "Weekend Ride to the Hills",
+      "description": "Join us for a thrilling ride to the hills and enjoy scenic views.",
+      "date": "2024-12-02T09:00:00Z",
+      "location": "1234 Mountain Road, Hillview, CA 90210",
+      "pfpUrl": "https://example.com/event-pfp.jpg"
+    }
+  ]
+}

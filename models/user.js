@@ -21,9 +21,9 @@ const userProps = [
   `is_admin AS "isAdmin"`,
   `created_at AS "createdAt"`,
   `deactivated_at AS "deactivatedAt"`,
-]
+];
 
-const userPropsSqlQuery = userProps.join(', ');
+const userPropsSqlQuery = userProps.join(", ");
 
 class User {
   /** authenticate user with email, password.
@@ -42,7 +42,7 @@ class User {
 
     const user = result.rows[0];
 
-    if (user.deactivatedAt) {
+    if (user && user.deactivatedAt) {
       throw new UnauthorizedError("User is deactivated");
     }
 
@@ -106,7 +106,7 @@ class User {
    **/
   static async get(id) {
     const userRes = await db.query(
-      `SELECT ${userPropsSqlQuery} FROM users WHERE id = ${id}`,
+      `SELECT ${userPropsSqlQuery} FROM users WHERE id = ${id}`
     );
 
     const user = userRes.rows[0];
@@ -116,14 +116,12 @@ class User {
     return user;
   }
 
-    /** Return array of users.
+  /** Return array of users.
    *
    * Returns data: [ {id, firstName, lastName, email, password, bio, pfpUrl, isAdmin, createdAt}, ...]
    **/
   static async getAll() {
-    const userRes = await db.query(
-      `SELECT ${userPropsSqlQuery} FROM users`,
-    );
+    const userRes = await db.query(`SELECT ${userPropsSqlQuery} FROM users`);
 
     const users = userRes.rows;
 

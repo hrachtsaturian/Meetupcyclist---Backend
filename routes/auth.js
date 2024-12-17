@@ -12,12 +12,12 @@ const User = require("../models/user");
 const userSignupSchema = require("../schemas/userSignup.json");
 const userAuthSchema = require("../schemas/userAuth.json");
 
-/** 
+/**
  * POST /signup :   { user } => { token }
  *
  * - User must include:
  *   { firstName, lastName, email, password }
- * 
+ *
  * - Authorization required: none
  *
  * Returns JWT token which can be used to authenticate further requests.
@@ -38,11 +38,11 @@ router.post("/signup", async function (req, res, next) {
   }
 });
 
-/** 
+/**
  * POST /login :  { email, password } => { token }
  *
  *  - Authorization required: none
- * 
+ *
  * Returns JWT token which can be used to authenticate further requests.
  **/
 router.post("/login", async function (req, res, next) {

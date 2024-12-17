@@ -70,8 +70,7 @@ class Location {
         ON l.created_by = u.id
       LEFT JOIN location_saves AS ls
       ON l.id = ls.location_id AND ls.user_id = ${userId}
-      WHERE l.id = ${id}`
-    );
+      WHERE l.id = ${id}`);
 
     const location = locationRes.rows[0];
 
@@ -84,7 +83,7 @@ class Location {
    *
    * Returns data: [ {id, name, description, address, pfpUrl, createdBy, createdAt}, ...]
    * 
-   // filters: 
+   // filter: 
    - isSaved (returns only the locations which are in Saved)
    **/
   static async getAll({ userId, isSaved }) {
@@ -105,7 +104,7 @@ class Location {
     }
 
     // ordery by avgRating - highest to lowest
-    query = query + ' ORDER BY "avgRating" DESC, l.created_at DESC'
+    query = query + ' ORDER BY "avgRating" DESC, l.created_at DESC';
 
     const locationRes = await db.query(query);
 
@@ -128,7 +127,7 @@ class Location {
    */
   static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(data, {
-      pfpUrl: "pfp_url"
+      pfpUrl: "pfp_url",
     });
 
     const querySql = `UPDATE locations

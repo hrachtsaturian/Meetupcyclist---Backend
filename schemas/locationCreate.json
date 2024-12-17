@@ -1,37 +1,33 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://example.com/example.json",
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 30
-      },
-      "description": {
-        "type": "string"
-      },
-      "address": {
-        "type": "string",
-        "description": "A human-readable address."
-      }, 
-      "pfpUrl": {
-        "type": "string"
-      }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
     },
-    "additionalProperties": false,
-    "required": [
-      "name",
-      "description",
-      "address"
-    ],
-    "examples": [
-      {
-        "name": "Sunrise Park",
-        "description": "A scenic park perfect for early morning meetups.",
-        "address": "123 Parkside Lane, Springfield, IL 62701",
-        "pfpUrl": "https://example.com/location-pfp.jpg"
-      }
-    ]
-  }
-  
+    "description": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string",
+      "description": "A human-readable address.",
+      "minLength": 1
+    },
+    "pfpUrl": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["name", "description", "address"],
+  "examples": [
+    {
+      "name": "Sunrise Park",
+      "description": "A scenic park perfect for early morning meetups.",
+      "address": "123 Parkside Lane, Springfield, IL 62701",
+      "pfpUrl": "https://example.com/location-pfp.jpg"
+    }
+  ]
+}
