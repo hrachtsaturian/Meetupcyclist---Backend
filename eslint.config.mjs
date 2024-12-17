@@ -8,8 +8,7 @@ export default [
     languageOptions: {
       sourceType: "commonjs",
     },
-    rules: {
-    },
+    rules: {},
   },
   {
     languageOptions: {
@@ -17,7 +16,7 @@ export default [
         ...globals.browser, // Use globals from the browser environment
         ...globals.jest,
         fail: "readonly",
-        process: "readonly"
+        process: "readonly",
       },
     },
   },

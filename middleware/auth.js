@@ -22,6 +22,7 @@ async function authenticateJWT(req, res, next) {
       res.locals.user = jwt.verify(token, SECRET_KEY);
       const user = await User.get(res.locals?.user?.id);
 
+      // if user is deactivated then throw an error
       if (user?.deactivatedAt) {
         throw new UnauthorizedError("User is deactivated");
       }
@@ -46,7 +47,7 @@ function ensureLoggedIn(req, res, next) {
   }
 }
 
-/** Middleware to use when they must be that user.
+/** Middleware to use access to specific user is needed.
  *
  * If not, raises Forbidden.
  */
@@ -60,7 +61,7 @@ function ensureHasAccessToTheUser(req, res, next) {
   }
 }
 
-/** Middleware to use when they must be admin.
+/** Middleware to use when must be admin.
  *
  * If not, raises Forbidden.
  */
@@ -77,5 +78,5 @@ module.exports = {
   authenticateJWT,
   ensureLoggedIn,
   ensureHasAccessToTheUser,
-  ensureIsAdmin
+  ensureIsAdmin,
 };

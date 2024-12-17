@@ -9,7 +9,7 @@ const groupPostProps = [
   `group_id AS "groupId"`,
   `text`,
   `created_at AS "createdAt"`,
-  `updated_at AS "updatedAt"`
+  `updated_at AS "updatedAt"`,
 ];
 
 const groupPostPropsGet = [
@@ -23,7 +23,7 @@ const groupPostPropsGet = [
   `u.last_name AS "lastName"`,
   `u.pfp_url AS "pfpUrl"`,
   `g.name AS "groupName"`,
-  `g.created_by AS "groupAdmin"`
+  `g.created_by AS "groupAdmin"`,
 ];
 
 const groupPostPropsForUpdateSqlQuery = groupPostProps.join(", ");
@@ -68,8 +68,10 @@ class GroupPost {
     return groupPost;
   }
 
-  // get 20 most recent posts from group that user is in 
-
+  /** Return array of 20 most recent group posts that user is in.
+   *
+   * Returns data: [ { id, userId, groupId, text, createdAt, updatedAt }, ...]
+   **/
   static async getRecent(userId) {
     const groupPostRes = await db.query(
       `SELECT ${groupPostPropsForReadSqlQuery}

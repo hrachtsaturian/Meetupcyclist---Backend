@@ -1,28 +1,27 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://example.com/example.json",
-    "type": "object",
-    "properties": {
-      "name": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 30
-      },
-      "description": {
-        "type": "string"
-      },
-      "pfpUrl": {
-        "type": "string"
-      }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
     },
-    "additionalProperties": false,
-    "required": [],
-    "examples": [
-      {
-        "name": "Offroad Adventure",
-        "description": "Explore rugged trails and enjoy breathtaking views.",
-        "pfpUrl": "https://example.com/group-pfp.jpg"
-      }
-    ]
-  }
-  
+    "description": {
+      "type": "string"
+    },
+    "pfpUrl": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [],
+  "examples": [
+    {
+      "name": "Offroad Adventure",
+      "description": "Explore rugged trails and enjoy breathtaking views.",
+      "pfpUrl": "https://example.com/group-pfp.jpg"
+    }
+  ]
+}

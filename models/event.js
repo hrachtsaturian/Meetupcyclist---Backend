@@ -91,7 +91,6 @@ class Event {
     return event;
   }
 
-  
   /** Given an user id, return array of events.
    *
    * Returns [{ id, title, description, date, location, pfpUrl, createdBy, createdAt }, ...]
@@ -121,7 +120,6 @@ class Event {
 
     return events || [];
   }
-
 
   /** Return array of events.
    *
@@ -201,7 +199,6 @@ class Event {
 
     return events || [];
   }
-
 
   /** Update event data with `data`.
    *

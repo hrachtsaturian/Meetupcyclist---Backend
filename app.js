@@ -7,13 +7,13 @@ const { NotFoundError } = require("./expressError");
 const { authenticateJWT } = require("./middleware/auth");
 const authRoutes = require("./routes/auth");
 const usersRoutes = require("./routes/users");
-const eventsRoutes = require("./routes/events")
-const eventPostsRoutes = require("./routes/eventPosts")
-const groupsRoutes = require("./routes/groups")
-const groupPostsRoutes = require("./routes/groupPosts")
-const locationsRoutes = require("./routes/locations")
-const locationReviewsRoutes = require("./routes/locationReviews")
-const uploadImage = require("./routes/uploadImage")
+const eventsRoutes = require("./routes/events");
+const eventPostsRoutes = require("./routes/eventPosts");
+const groupsRoutes = require("./routes/groups");
+const groupPostsRoutes = require("./routes/groupPosts");
+const locationsRoutes = require("./routes/locations");
+const locationReviewsRoutes = require("./routes/locationReviews");
+const uploadImage = require("./routes/uploadImage");
 
 const app = express();
 
@@ -22,9 +22,9 @@ app.use(authenticateJWT);
 
 // policies
 app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "*");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 

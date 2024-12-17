@@ -12,7 +12,7 @@ const groupEventProps = [
 const groupEventPropsForUpdateSqlQuery = groupEventProps.join(", ");
 
 class GroupEvent {
-    /** Get array of events of a single group.
+  /** Get array of events of a single group.
    *
    * Returns [{ eventId, groupId, createdAt }, ...]
    **/

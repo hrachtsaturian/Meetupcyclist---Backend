@@ -22,18 +22,14 @@ const {
  *
  * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
  **/
-router.get(
-  "/:id",
-  ensureLoggedIn,
-  async function (req, res, next) {
-    try {
-      const user = await User.get(req.params.id);
-      return res.json({ data: user });
-    } catch (err) {
-      return next(err);
-    }
+router.get("/:id", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const user = await User.get(req.params.id);
+    return res.json({ data: user });
+  } catch (err) {
+    return next(err);
   }
-);
+});
 
 /**
  * GET / => [{ users}, ...]
@@ -42,18 +38,14 @@ router.get(
  *
  * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
  **/
-router.get(
-  "/",
-  ensureLoggedIn,
-  async function (req, res, next) {
-    try {
-      const users = await User.getAll();
-      return res.json({ data: users });
-    } catch (err) {
-      return next(err);
-    }
+router.get("/", ensureLoggedIn, async function (req, res, next) {
+  try {
+    const users = await User.getAll();
+    return res.json({ data: users });
+  } catch (err) {
+    return next(err);
   }
-);
+});
 
 /**
  * PATCH /[id] { user } => { user }
@@ -89,10 +81,10 @@ router.patch(
 /**
  * PATCH /[id]/deactivate
  *
- * - soft delete used
+ * - Soft delete user
  *
  * - Authorization required: admin only
- * 
+ *
  * - Admin cannot deactivate themselves or another admin
  *
  * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
@@ -114,7 +106,9 @@ router.patch(
         throw new BadRequestError("Cannot deactivate admin");
       }
 
-      const updatedUser = await User.update(req.params.id, { deactivatedAt: new Date() });
+      const updatedUser = await User.update(req.params.id, {
+        deactivatedAt: new Date(),
+      });
 
       return res.json({ data: updatedUser });
     } catch (err) {

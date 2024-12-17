@@ -84,7 +84,8 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
 router.get("/", ensureLoggedIn, async function (req, res, next) {
   // filters for query
   // query params are currently not parse and all returned as strings
-  const { filter: { isSaved, isAttending, minDate, maxDate, createdBy } = {} } = req.query;
+  const { filter: { isSaved, isAttending, minDate, maxDate, createdBy } = {} } =
+    req.query;
   const filter = {
     isSaved: isSaved === "true", // currently only supports true
     isAttending: isAttending === "true", // currently only supports true
@@ -93,20 +94,19 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
     // ensure the date is valid date string
     maxDate: !isNaN(Date.parse(maxDate)) ? new Date(maxDate) : null,
     createdBy,
-  }
+  };
 
   const sort = {
     // default date sort is ASC
-    // other sorts are not supported at the moment
-    date: req.query?.sort?.date === 'DESC' ? 'DESC' : 'ASC'
-  }
+    date: req.query?.sort?.date === "DESC" ? "DESC" : "ASC",
+  };
 
   try {
     // fetching all the events
     const events = await Event.getAll({
       userId: res.locals.user.id,
       filter,
-      sort
+      sort,
     });
 
     return res.json({ data: events });
@@ -162,7 +162,8 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
     const event = await Event.get(req.params.id, res.locals.user.id);
 
-    const isEventOrganizer = event.createdBy?.toString() === res.locals.user.id.toString();
+    const isEventOrganizer =
+      event.createdBy?.toString() === res.locals.user.id.toString();
     const isAdmin = res.locals.user.isAdmin;
 
     if (isEventOrganizer || isAdmin) {

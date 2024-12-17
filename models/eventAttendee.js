@@ -6,7 +6,7 @@ const { NotFoundError } = require("../expressError.js");
 const attendanceProps = [
   `user_id AS "userId"`,
   `event_id AS "eventId"`,
-  `created_at AS "createdAt"`
+  `created_at AS "createdAt"`,
 ];
 
 const attendancePropsGet = [
@@ -29,20 +29,20 @@ class EventAttendee {
    *
    * Returns [{ user_id, eventId, createdAt }, ...]
    **/
-    static async get(eventId) {
-      const result = await db.query(
-        `SELECT ${attendancePropsForReadSqlQuery}
+  static async get(eventId) {
+    const result = await db.query(
+      `SELECT ${attendancePropsForReadSqlQuery}
           FROM event_attendees AS ea
           JOIN users AS u 
           ON ea.user_id = u.id
           WHERE ea.event_id = $1`,
-        [eventId]
-      );
-      const eventAttendees = result.rows;
-  
-      return eventAttendees;
-    }
-    
+      [eventId]
+    );
+    const eventAttendees = result.rows;
+
+    return eventAttendees;
+  }
+
   /** Sign up for event with data.
    *
    * Returns { userId, eventId, createdAt }

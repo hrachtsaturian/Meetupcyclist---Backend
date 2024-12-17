@@ -4,10 +4,7 @@
 
 const express = require("express");
 const router = new express.Router();
-const {
-  BadRequestError,
-  NotFoundError,
-} = require("../expressError");
+const { BadRequestError, NotFoundError } = require("../expressError");
 const jsonschema = require("jsonschema");
 
 const Location = require("../models/location");
@@ -82,7 +79,10 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
 
   try {
     // fetching all the locations
-    const locations = await Location.getAll({ userId: res.locals.user.id, isSaved });
+    const locations = await Location.getAll({
+      userId: res.locals.user.id,
+      isSaved,
+    });
 
     return res.json({ data: locations });
   } catch (err) {
@@ -217,10 +217,7 @@ router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const save = await LocationSave.add(
-      res.locals.user.id,
-      req.params.id
-    );
+    const save = await LocationSave.add(res.locals.user.id, req.params.id);
     return res.json({ data: save });
   } catch (err) {
     return next(err);

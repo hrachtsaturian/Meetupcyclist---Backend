@@ -87,7 +87,7 @@ router.get("/", ensureLoggedIn, async function (req, res, next) {
     isSaved: isSaved === "true", // currently only supports true
     isJoined: isJoined === "true", // currently only supports true
     createdBy,
-  }
+  };
 
   try {
     // fetching all the groups
@@ -145,9 +145,9 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
   try {
     const group = await Group.get(req.params.id, res.locals.user.id);
 
-    const isGroupAdmin = group.createdBy?.toString() === res.locals.user.id.toString();
+    const isGroupAdmin =
+      group.createdBy?.toString() === res.locals.user.id.toString();
     const isAdmin = res.locals.user.isAdmin;
-
 
     if (isGroupAdmin || isAdmin) {
       await Group.delete(req.params.id);
@@ -202,7 +202,7 @@ router.delete(
 
       // group admin cannot leave the group
       if (group.createdBy === res.locals.user.id) {
-        throw new ForbiddenError()
+        throw new ForbiddenError();
       }
 
       await GroupMember.remove(res.locals.user.id, req.params.id);
@@ -212,7 +212,6 @@ router.delete(
     }
   }
 );
-
 
 /**
  * GET /[id]/members  Get members of a single group
@@ -236,7 +235,6 @@ router.get("/:id/members", ensureLoggedIn, async function (req, res, next) {
     return next(err);
   }
 });
-
 
 /**
  * GET /[id]/events  Get events of a single group
@@ -326,7 +324,6 @@ router.delete(
         throw new NotFoundError();
       }
 
-      // admin?
       if (event.createdBy !== res.locals.user.id) {
         throw new UnauthorizedError();
       }

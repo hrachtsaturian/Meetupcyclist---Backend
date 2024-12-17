@@ -85,6 +85,7 @@ class Group {
    // filters: 
    - isSaved (returns only the groups which are in Saved),
    - isJoined (returns only the groups which are in GroupMembers)
+   - createdBy (returns only the groups which were created by specific user)
    **/
   static async getAll({
     userId,
@@ -108,7 +109,6 @@ class Group {
     let conditions = [];
     let params = [];
 
-    // Add condition for filtering
     if (isSaved) {
       conditions.push("gs.user_id IS NOT NULL");
     }
@@ -122,12 +122,12 @@ class Group {
       conditions.push(`g.created_by = $${params.length}`);
     }
 
+    // Combine all conditions into a WHERE clause if any exist
     const whereClause =
       conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
 
     const sortClause = ` ORDER BY "membersCount" DESC, g.created_at DESC`;
 
-    // order by group members number - highest to lowest
     query = query + whereClause + sortClause;
 
     const groupRes = await db.query(query, params);

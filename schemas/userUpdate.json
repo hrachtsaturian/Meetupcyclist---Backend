@@ -1,56 +1,55 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://example.com/example.json",
-    "type": "object",
-    "properties": {
-      "firstName": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 30
-      },
-      "lastName": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 30
-      },
-      "email": {
-        "type": "string",
-        "minLength": 8,
-        "maxLength": 80,
-        "format": "email"
-      },
-      "password": {
-        "type": "string",
-        "minLength": 8,
-        "maxLength": 80,
-        "pattern": "^(?!\\s).*(?<!\\s)$"
-      },
-      "bio": {
-        "type": "string"
-      },
-      "pfpUrl": {
-        "type": "string"
-      }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/example.json",
+  "type": "object",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
     },
-    "additionalProperties": false,
-    "required": [],
-    "examples": [
-      {
-        "firstName": "John",
-        "lastName": "Doe",
-        "email": "john.doe@example.com",
-        "password": "S3cureP@ss!",
-        "bio": "Enthusiastic rider and adventure lover.",
-        "pfpUrl": "https://example.com/profiles/john_doe.jpg"
-      },
-      {
-        "firstName": "Jane",
-        "lastName": "Smith",
-        "email": "jane.smith@bikersclub.com",
-        "password": "MyStr0ngP@ssw0rd",
-        "bio": "Trailblazing biker with a love for long rides.",
-        "pfpUrl": "https://example.com/profiles/jane_smith.png"
-      }
-    ]
-  }
-  
+    "lastName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "email": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 80,
+      "format": "email"
+    },
+    "password": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 80,
+      "pattern": "^(?!\\s).*(?<!\\s)$"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "pfpUrl": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [],
+  "examples": [
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "password": "S3cureP@ss!",
+      "bio": "Enthusiastic rider and adventure lover.",
+      "pfpUrl": "https://example.com/profiles/john_doe.jpg"
+    },
+    {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "jane.smith@bikersclub.com",
+      "password": "MyStr0ngP@ssw0rd",
+      "bio": "Trailblazing biker with a love for long rides.",
+      "pfpUrl": "https://example.com/profiles/jane_smith.png"
+    }
+  ]
+}
