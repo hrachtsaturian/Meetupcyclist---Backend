@@ -38,7 +38,8 @@ router.post("/signup", async function (req, res, next) {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7 days
     });
 
     return res.status(201).json({ data: { user: newUser, token } });
@@ -69,7 +70,7 @@ router.post("/login", async function (req, res, next) {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7 days
     });
 
@@ -96,8 +97,8 @@ router.post("/authenticate", async function (req, res, next) {
   try {
     const jwtCookie = req.cookies?.jwt;
     if (!jwtCookie) {
-      // redirect home if no cookie (not logged in)
-      return res.status(200).json({ redirect: "/" });
+      // if no cookie (not logged in)
+      return res.status(200).json({ data: { user: null, token: null } });
     }
     const parsedJwt = jwt.verify(jwtCookie, SECRET_KEY);
     const user = await User.get(parsedJwt.id);
@@ -106,30 +107,36 @@ router.post("/authenticate", async function (req, res, next) {
       // user got deactivated but still has cookie
       throw new BadRequestError("User is deactivated");
     }
+    // refresh expiration date of cookie
+    res.cookie('jwt', jwtCookie, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7 days
+    });
 
     return res.json({ data: { user, token: jwtCookie } });
   } catch (err) {
     // log error for debugging purposes
-    // redirect home if anything goes wrong
-    console.log('API Error:', err);
-    return res.status(200).json({ redirect: "/" });
+    // do not return error, just return null user and token
+    console.log('API Error - authenticate:', err);
+    return res.status(200).json({ data: { user: null, token: null } });
   }
 });
 
 router.post("/logout", async function (req, res, next) {
   try {
     // when user logs out, delete cookie
-    // and then redirect user to the home page
     res.clearCookie('jwt', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'None',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'strict',
     });
 
-    return res.status(200).json({ redirect: "/" });
+    return res.status(204).send();
   } catch (err) {
-    // redirect anyways if anything goes wrong
-    return res.status(200).json({ redirect: "/" });
+    console.log('API Error - logout:', err);
+    return res.status(204);
   }
 });
 

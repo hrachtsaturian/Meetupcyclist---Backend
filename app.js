@@ -19,7 +19,9 @@ const uploadImage = require("./routes/uploadImage");
 
 const app = express();
 
-const origin = process.env.NODE_ENV === 'production' ? 'https://meetupcyclist.onrender.com' : 'http://localhost:3000';
+const origin = process.env.NODE_ENV === "production"
+    ? "https://meetupcyclist.onrender.com"
+    : "http://localhost:3000";
 
 app.use(cookieParser());
 app.use(cors({
@@ -28,7 +30,7 @@ app.use(cors({
 }));
 
 // policies
-app.options('*', (req, res) => {
+app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', origin);
   // allow with credentials
   res.header("Access-Control-Allow-Credentials", "true");

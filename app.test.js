@@ -50,7 +50,8 @@ describe("CORS headers", () => {
   it("should include CORS headers", async () => {
     const res = await request(app).get("/users");
 
-    expect(res.headers["access-control-allow-origin"]).toBe("https://meetupcyclist.onrender.com");
+    expect(res.headers["access-control-allow-origin"]).toBe("http://localhost:3000");
+    expect(res.headers["access-control-allow-credentials"]).toBe("true");
     expect(res.headers["access-control-allow-methods"]).toBe("GET, POST, PUT, PATCH, DELETE, OPTIONS");
     expect(res.headers["access-control-allow-headers"]).toBe(
       "Content-Type, Authorization"
