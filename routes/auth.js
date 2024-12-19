@@ -70,6 +70,7 @@ router.post("/login", async function (req, res, next) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7 days
     });
 
     return res.json({ data: { user, token } });
@@ -102,7 +103,7 @@ router.post("/authenticate", async function (req, res, next) {
     const user = await User.get(parsedJwt.id);
 
     if (user.deactivatedAt) {
-      // redirect home if user got deactivated but still has cookie
+      // user got deactivated but still has cookie
       throw new BadRequestError("User is deactivated");
     }
 
