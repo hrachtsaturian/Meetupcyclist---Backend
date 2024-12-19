@@ -38,7 +38,7 @@ router.post("/signup", async function (req, res, next) {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'None',
     });
 
     return res.status(201).json({ data: { user: newUser, token } });
@@ -69,7 +69,7 @@ router.post("/login", async function (req, res, next) {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'None',
       maxAge: 7 * 24 * 60 * 60 * 1000, // expires in 7 days
     });
 
@@ -123,7 +123,7 @@ router.post("/logout", async function (req, res, next) {
     res.clearCookie('jwt', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'None',
     });
 
     return res.status(200).json({ redirect: "/" });
