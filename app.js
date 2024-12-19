@@ -18,15 +18,18 @@ const locationReviewsRoutes = require("./routes/locationReviews");
 const uploadImage = require("./routes/uploadImage");
 
 const app = express();
+
+const origin = process.env.NODE_ENV === 'production' ? 'https://meetupcyclist.onrender.com' : 'http://localhost:3000';
+
 app.use(cookieParser());
 app.use(cors({
-  origin: 'https://meetupcyclist.onrender.com',
+  origin: origin,
   credentials: true,
 }));
 
 // policies
-app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'https://meetupcyclist.onrender.com');
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', origin);
   // allow with credentials
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
