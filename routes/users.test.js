@@ -15,7 +15,7 @@ describe("User Routes", () => {
       firstName: "Tommy",
       lastName: "Vercetti",
     });
-    userToken = userResponse.body.data;
+    userToken = userResponse.body.data.token;
     userId = jwt.verify(userToken, SECRET_KEY).id;
   });
 

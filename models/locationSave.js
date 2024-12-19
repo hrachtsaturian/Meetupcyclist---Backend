@@ -37,9 +37,10 @@ class LocationSave {
    * Throws NotFoundError if not found.
    */
   static async remove(userId, locationId) {
-    const querySql = `DELETE FROM location_saves WHERE user_id = ${userId} AND location_id = ${locationId}`;
+    const querySql = `DELETE FROM location_saves WHERE user_id = $1 AND location_id = $2`;
+    const values = [userId, locationId];
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, values);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No save found`);

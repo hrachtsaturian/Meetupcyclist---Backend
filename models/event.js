@@ -70,7 +70,8 @@ class Event {
    * Throws NotFoundError if event not found.
    **/
   static async get(id, userId) {
-    const eventRes = await db.query(`
+    const eventRes = await db.query(
+      `
       SELECT 
         ${eventPropsForReadSqlQuery},
         CASE WHEN es.user_id IS NOT NULL THEN TRUE ELSE FALSE END AS "isSaved",
@@ -80,10 +81,12 @@ class Event {
       JOIN users AS u 
         ON e.created_by = u.id
       LEFT JOIN event_saves AS es
-        ON e.id = es.event_id AND es.user_id = ${userId}
+        ON e.id = es.event_id AND es.user_id = $1
       LEFT JOIN event_attendees AS ea 
-        ON e.id = ea.event_id AND ea.user_id = ${userId}
-        WHERE e.id = ${id}`);
+        ON e.id = ea.event_id AND ea.user_id = $1
+        WHERE e.id = $2`,
+      [userId, id]
+    );
 
     const event = eventRes.rows[0];
 
@@ -108,12 +111,12 @@ class Event {
       JOIN users AS u 
         ON e.created_by = u.id
       LEFT JOIN event_saves AS es
-        ON e.id = es.event_id AND es.user_id = ${userId}
+        ON e.id = es.event_id AND es.user_id = $1
       LEFT JOIN event_attendees AS ea 
-        ON e.id = ea.event_id AND ea.user_id = ${userId}
-        WHERE e.id = ANY($1) AND e.date > NOW()
+        ON e.id = ea.event_id AND ea.user_id = $1
+        WHERE e.id = ANY($2) AND e.date > NOW()
         ORDER BY e.date`,
-      [ids]
+      [userId, ids]
     );
 
     const events = eventRes.rows;
@@ -155,12 +158,12 @@ class Event {
       JOIN users AS u 
         ON e.created_by = u.id
       LEFT JOIN event_saves AS es
-        ON e.id = es.event_id AND es.user_id = ${userId}
+        ON e.id = es.event_id AND es.user_id = $1
       LEFT JOIN event_attendees AS ea 
-        ON e.id = ea.event_id AND ea.user_id = ${userId}`;
+        ON e.id = ea.event_id AND ea.user_id = $1`;
 
     let conditions = [];
-    let params = [];
+    let params = [userId];
 
     if (isSaved) {
       conditions.push("es.user_id IS NOT NULL");
@@ -219,10 +222,10 @@ class Event {
 
     const querySql = `UPDATE events
                         SET ${setCols}
-                        WHERE id = ${id}
+                        WHERE id = $${values.length + 1}
                         RETURNING ${eventPropsForUpdateSqlQuery}`;
 
-    const result = await db.query(querySql, values);
+    const result = await db.query(querySql, [...values, id]);
     const event = result.rows[0];
 
     if (!event) throw new NotFoundError(`No event found`);
@@ -236,9 +239,9 @@ class Event {
    * Throws NotFoundError if not found.
    */
   static async delete(id) {
-    const querySql = `DELETE FROM events WHERE id = ${id}`;
+    const querySql = `DELETE FROM events WHERE id = $1`;
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, [id]);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No event found`);

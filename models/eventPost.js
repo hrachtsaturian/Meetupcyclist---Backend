@@ -57,7 +57,8 @@ class EventPost {
     const res = await db.query(
       `SELECT ${eventPostPropsForUpdateSqlQuery}
         FROM event_posts
-            WHERE id = ${id}`
+            WHERE id = $1`,
+      [id]
     );
 
     const eventPost = res.rows[0];
@@ -79,8 +80,9 @@ class EventPost {
                 ON ep.user_id = u.id
             JOIN events AS e
                 ON ep.event_id = e.id
-                WHERE ep.event_id = ${eventId}
-                ORDER BY ep.created_at DESC`
+                WHERE ep.event_id = $1
+                ORDER BY ep.created_at DESC`,
+      [eventId]
     );
 
     const eventPosts = eventPostRes.rows;
@@ -97,10 +99,10 @@ class EventPost {
   static async update(id, text) {
     const querySql = `UPDATE event_posts
                             SET "text"=$1, "updated_at"=$2
-                            WHERE id=${id}
+                            WHERE id=$3
                             RETURNING ${eventPostPropsForUpdateSqlQuery}`;
 
-    const result = await db.query(querySql, [text, new Date()]);
+    const result = await db.query(querySql, [text, new Date(), id]);
     const eventPost = result.rows[0];
 
     if (!eventPost) throw new NotFoundError(`No post found`);
@@ -114,9 +116,9 @@ class EventPost {
    * Throws NotFoundError if not found.
    */
   static async delete(id) {
-    const querySql = `DELETE FROM event_posts WHERE id = ${id}`;
+    const querySql = `DELETE FROM event_posts WHERE id = $1`;
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, [id]);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No post found`);

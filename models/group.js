@@ -67,10 +67,10 @@ class Group {
       JOIN users AS u
         ON g.created_by = u.id
       LEFT JOIN group_saves AS gs
-        ON g.id = gs.group_id AND gs.user_id = ${userId}
+        ON g.id = gs.group_id AND gs.user_id = $1
       LEFT JOIN group_members AS gm
-        ON g.id = gm.group_id AND gm.user_id = ${userId}
-      WHERE g.id = ${id}`);
+        ON g.id = gm.group_id AND gm.user_id = $1
+      WHERE g.id = $2`, [userId, id]);
 
     const group = groupRes.rows[0];
 
@@ -101,13 +101,13 @@ class Group {
       JOIN users AS u 
         ON g.created_by = u.id
       LEFT JOIN group_saves AS gs 
-        ON g.id = gs.group_id AND gs.user_id = ${userId}
+        ON g.id = gs.group_id AND gs.user_id = $1
       LEFT JOIN group_members AS gm 
-        ON g.id = gm.group_id AND gm.user_id = ${userId}
+        ON g.id = gm.group_id AND gm.user_id = $1
     `;
 
     let conditions = [];
-    let params = [];
+    let params = [userId];
 
     if (isSaved) {
       conditions.push("gs.user_id IS NOT NULL");
@@ -156,10 +156,10 @@ class Group {
 
     const querySql = `UPDATE groups
                       SET ${setCols}
-                      WHERE id = ${id}
+                      WHERE id = $${values.length + 1}
                       RETURNING ${groupPropsForUpdateSqlQuery}`;
 
-    const result = await db.query(querySql, values);
+    const result = await db.query(querySql, [...values, id]);
     const group = result.rows[0];
 
     if (!group) throw new NotFoundError(`No group found`);
@@ -173,9 +173,9 @@ class Group {
    * Throws NotFoundError if not found.
    */
   static async delete(id) {
-    const querySql = `DELETE FROM groups WHERE id = ${id}`;
+    const querySql = `DELETE FROM groups WHERE id = $1`;
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, [id]);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No group found`);

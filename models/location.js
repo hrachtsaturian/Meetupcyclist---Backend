@@ -69,8 +69,8 @@ class Location {
       JOIN users AS u 
         ON l.created_by = u.id
       LEFT JOIN location_saves AS ls
-      ON l.id = ls.location_id AND ls.user_id = ${userId}
-      WHERE l.id = ${id}`);
+      ON l.id = ls.location_id AND ls.user_id = $1
+      WHERE l.id = $2`, [userId, id]);
 
     const location = locationRes.rows[0];
 
@@ -95,7 +95,7 @@ class Location {
       JOIN users AS u 
         ON l.created_by = u.id
       LEFT JOIN location_saves AS ls
-      ON l.id = ls.location_id AND ls.user_id = ${userId}
+      ON l.id = ls.location_id AND ls.user_id = $1
   `;
 
     // Add condition for filtering
@@ -106,7 +106,7 @@ class Location {
     // ordery by avgRating - highest to lowest
     query = query + ' ORDER BY "avgRating" DESC, l.created_at DESC';
 
-    const locationRes = await db.query(query);
+    const locationRes = await db.query(query, [userId]);
 
     const locations = locationRes.rows;
 
@@ -132,10 +132,10 @@ class Location {
 
     const querySql = `UPDATE locations
                       SET ${setCols}
-                      WHERE id = ${id}
+                      WHERE id = $${values.length + 1}
                       RETURNING ${locationPropsForUpdateSqlQuery}`;
 
-    const result = await db.query(querySql, values);
+    const result = await db.query(querySql, [...values, id]);
     const location = result.rows[0];
 
     if (!location) throw new NotFoundError(`No location found`);
@@ -149,9 +149,9 @@ class Location {
    * Throws NotFoundError if not found.
    */
   static async delete(id) {
-    const querySql = `DELETE FROM locations WHERE id = ${id}`;
+    const querySql = `DELETE FROM locations WHERE id = $1`;
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, [id]);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No location found`);

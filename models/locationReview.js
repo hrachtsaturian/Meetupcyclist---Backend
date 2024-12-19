@@ -59,7 +59,8 @@ class LocationReview {
     const res = await db.query(
       `SELECT ${locationReviewPropsForUpdateSqlQuery}
             FROM location_reviews
-            WHERE id = ${id}`
+            WHERE id = $1`,
+      [id]
     );
 
     const locationReview = res.rows[0];
@@ -79,8 +80,9 @@ class LocationReview {
             FROM location_reviews AS lr
             JOIN users AS u
                 ON lr.user_id = u.id
-                WHERE lr.location_id = ${locationId}
-                ORDER BY lr.created_at DESC`
+                WHERE lr.location_id = $1
+                ORDER BY lr.created_at DESC`,
+      [locationId]
     );
 
     const locationReviews = locationReviewRes.rows;
@@ -97,10 +99,10 @@ class LocationReview {
   static async update(id, text, rate) {
     const querySql = `UPDATE location_reviews
                             SET "text"=$1, "rate"=$2, "updated_at"=$3
-                            WHERE id=${id}
+                            WHERE id=$4
                             RETURNING ${locationReviewPropsForUpdateSqlQuery}`;
 
-    const result = await db.query(querySql, [text, rate, new Date()]);
+    const result = await db.query(querySql, [text, rate, new Date(), id]);
     const locationReview = result.rows[0];
 
     if (!locationReview) throw new NotFoundError(`No review found`);
@@ -114,9 +116,9 @@ class LocationReview {
    * Throws NotFoundError if not found.
    */
   static async delete(id) {
-    const querySql = `DELETE FROM location_reviews WHERE id = ${id}`;
+    const querySql = `DELETE FROM location_reviews WHERE id = $1`;
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, [id]);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No review found`);

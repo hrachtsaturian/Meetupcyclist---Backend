@@ -49,7 +49,7 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
 
     const { text } = req.body;
 
-    const updatedPost = await GroupPost.update(req.params.id, text);
+    const updatedPost = await GroupPost.update(post.id, text);
 
     return res.json({ data: updatedPost });
   } catch (err) {
@@ -77,7 +77,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
       throw new UnauthorizedError();
     }
 
-    await GroupPost.delete(req.params.id);
+    await GroupPost.delete(post.id);
 
     return res.status(204).send();
   } catch (err) {

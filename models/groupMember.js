@@ -68,9 +68,10 @@ class GroupMember {
    * Throws NotFoundError if not found.
    */
   static async remove(userId, groupId) {
-    const querySql = `DELETE FROM group_members WHERE user_id = ${userId} AND group_id = ${groupId}`;
+    const querySql = `DELETE FROM group_members WHERE user_id = $1 AND group_id = $2`;
+    const values = [userId, groupId];
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, values);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No membership found`);

@@ -128,7 +128,7 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const updatedGroup = await Group.update(req.params.id, req.body);
+    const updatedGroup = await Group.update(group.id, req.body);
     return res.json({ data: updatedGroup });
   } catch (err) {
     return next(err);
@@ -150,7 +150,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
     const isAdmin = res.locals.user.isAdmin;
 
     if (isGroupAdmin || isAdmin) {
-      await Group.delete(req.params.id);
+      await Group.delete(group.id);
       return res.status(204).send();
     }
 
@@ -175,7 +175,7 @@ router.post("/:id/membership", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const join = await GroupMember.add(res.locals.user.id, req.params.id);
+    const join = await GroupMember.add(res.locals.user.id, group.id);
     return res.json({ data: join });
   } catch (err) {
     return next(err);
@@ -205,7 +205,7 @@ router.delete(
         throw new ForbiddenError();
       }
 
-      await GroupMember.remove(res.locals.user.id, req.params.id);
+      await GroupMember.remove(res.locals.user.id, group.id);
       return res.status(204).send();
     } catch (err) {
       return next(err);
@@ -228,7 +228,7 @@ router.get("/:id/members", ensureLoggedIn, async function (req, res, next) {
     if (!group) {
       throw new NotFoundError();
     }
-    const groupMembers = await GroupMember.get(id, res.locals.user.id);
+    const groupMembers = await GroupMember.get(group.id, res.locals.user.id);
 
     return res.json({ data: groupMembers });
   } catch (err) {
@@ -251,7 +251,7 @@ router.get("/:id/events", ensureLoggedIn, async function (req, res, next) {
     if (!group) {
       throw new NotFoundError();
     }
-    const groupEvents = await GroupEvent.get(id, res.locals.user.id);
+    const groupEvents = await GroupEvent.get(group.id, res.locals.user.id);
     const linkedEventIds = groupEvents.map(({ eventId }) => eventId);
     const events = await Event.getByIds(linkedEventIds, res.locals.user.id);
 
@@ -358,7 +358,7 @@ router.post("/:id/posts", ensureLoggedIn, async function (req, res, next) {
 
     const post = await GroupPost.create(
       res.locals.user.id,
-      req.params.id,
+      group.id,
       text
     );
     return res.json({ data: post });
@@ -383,7 +383,7 @@ router.get("/:id/posts", ensureLoggedIn, async function (req, res, next) {
     }
 
     // fetching all the posts
-    const posts = await GroupPost.getAll(req.params.id);
+    const posts = await GroupPost.getAll(group.id);
 
     return res.json({ data: posts });
   } catch (err) {
@@ -406,7 +406,7 @@ router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const save = await GroupSave.add(res.locals.user.id, req.params.id);
+    const save = await GroupSave.add(res.locals.user.id, group.id);
     return res.json({ data: save });
   } catch (err) {
     return next(err);
@@ -427,7 +427,7 @@ router.delete("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    await GroupSave.remove(res.locals.user.id, req.params.id);
+    await GroupSave.remove(res.locals.user.id, group.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);

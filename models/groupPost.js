@@ -58,7 +58,8 @@ class GroupPost {
     const res = await db.query(
       `SELECT ${groupPostPropsForUpdateSqlQuery}
         FROM group_posts
-            WHERE id = ${id}`
+            WHERE id = $1`,
+      [id]
     );
 
     const groupPost = res.rows[0];
@@ -82,9 +83,10 @@ class GroupPost {
                 ON gp.group_id = g.id
             JOIN group_members AS gm
                 ON gp.group_id = gm.group_id
-      WHERE gm.user_id = ${userId}
+      WHERE gm.user_id = $1
       ORDER BY gp.created_at DESC
-      LIMIT 20`
+      LIMIT 20`,
+      [userId]
     );
 
     const groupPosts = groupPostRes.rows;
@@ -104,8 +106,9 @@ class GroupPost {
                 ON gp.user_id = u.id
             JOIN groups AS g
                 ON gp.group_id = g.id
-      WHERE gp.group_id = ${groupId}
-      ORDER BY gp.created_at DESC`
+      WHERE gp.group_id = $1
+      ORDER BY gp.created_at DESC`,
+      [groupId]
     );
 
     const groupPosts = groupPostRes.rows;
@@ -122,10 +125,10 @@ class GroupPost {
   static async update(id, text) {
     const querySql = `UPDATE group_posts
                             SET "text"=$1, "updated_at"=$2
-                            WHERE id=${id}
+                            WHERE id=$3
                             RETURNING ${groupPostPropsForUpdateSqlQuery}`;
 
-    const result = await db.query(querySql, [text, new Date()]);
+    const result = await db.query(querySql, [text, new Date(), id]);
     const groupPost = result.rows[0];
 
     if (!groupPost) throw new NotFoundError(`No post found`);
@@ -139,9 +142,9 @@ class GroupPost {
    * Throws NotFoundError if not found.
    */
   static async delete(id) {
-    const querySql = `DELETE FROM group_posts WHERE id = ${id}`;
+    const querySql = `DELETE FROM group_posts WHERE id = $1`;
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, [id]);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No post found`);

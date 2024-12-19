@@ -119,7 +119,7 @@ router.patch(
         throw new BadRequestError(errs);
       }
 
-      const updatedLocation = await Location.update(req.params.id, req.body);
+      const updatedLocation = await Location.update(location.id, req.body);
       return res.json({ data: updatedLocation });
     } catch (err) {
       return next(err);
@@ -168,7 +168,7 @@ router.post("/:id/reviews", ensureLoggedIn, async function (req, res, next) {
 
     const review = await LocationReview.create(
       res.locals.user.id,
-      req.params.id,
+      location.id,
       text,
       rate
     );
@@ -194,7 +194,7 @@ router.get("/:id/reviews", ensureLoggedIn, async function (req, res, next) {
     }
 
     // fetching all the reviews
-    const reviews = await LocationReview.getAll(req.params.id);
+    const reviews = await LocationReview.getAll(location.id);
 
     return res.json({ data: reviews });
   } catch (err) {
@@ -217,7 +217,7 @@ router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const save = await LocationSave.add(res.locals.user.id, req.params.id);
+    const save = await LocationSave.add(res.locals.user.id, location.id);
     return res.json({ data: save });
   } catch (err) {
     return next(err);
@@ -239,7 +239,7 @@ router.delete("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    await LocationSave.remove(res.locals.user.id, req.params.id);
+    await LocationSave.remove(res.locals.user.id, location.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);

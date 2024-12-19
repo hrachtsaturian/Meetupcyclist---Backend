@@ -3,6 +3,8 @@
 /** Express app for meetupcyclist. */
 
 const express = require("express");
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const { NotFoundError } = require("./expressError");
 const { authenticateJWT } = require("./middleware/auth");
 const authRoutes = require("./routes/auth");
@@ -16,10 +18,17 @@ const locationReviewsRoutes = require("./routes/locationReviews");
 const uploadImage = require("./routes/uploadImage");
 
 const app = express();
+app.use(cookieParser());
+app.use(cors({
+  origin: 'https://meetupcyclist.onrender.com',
+  credentials: true,
+}));
 
 // policies
 app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "https://meetupcyclist.onrender.com");
+  res.header('Access-Control-Allow-Origin', 'https://meetupcyclist.onrender.com');
+  // allow with credentials
+  res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();

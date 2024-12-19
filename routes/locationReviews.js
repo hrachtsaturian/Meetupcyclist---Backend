@@ -30,7 +30,7 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
     const { text, rate } = req.body;
 
     const updatedReview = await LocationReview.update(
-      req.params.id,
+      review.id,
       text,
       rate
     );
@@ -59,7 +59,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
       throw new UnauthorizedError();
     }
 
-    await LocationReview.delete(req.params.id);
+    await LocationReview.delete(review.id);
 
     return res.status(204).send();
   } catch (err) {

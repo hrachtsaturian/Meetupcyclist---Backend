@@ -106,7 +106,8 @@ class User {
    **/
   static async get(id) {
     const userRes = await db.query(
-      `SELECT ${userPropsSqlQuery} FROM users WHERE id = ${id}`
+      `SELECT ${userPropsSqlQuery} FROM users WHERE id = $1`,
+      [id]
     );
 
     const user = userRes.rows[0];
@@ -114,18 +115,6 @@ class User {
     if (!user) throw new NotFoundError(`No user found`);
 
     return user;
-  }
-
-  /** Return array of users.
-   *
-   * Returns data: [ {id, firstName, lastName, email, password, bio, pfpUrl, isAdmin, createdAt}, ...]
-   **/
-  static async getAll() {
-    const userRes = await db.query(`SELECT ${userPropsSqlQuery} FROM users`);
-
-    const users = userRes.rows;
-
-    return users || [];
   }
 
   /** Update user data with `data`.
@@ -158,10 +147,10 @@ class User {
 
     const querySql = `UPDATE users
                       SET ${setCols}
-                      WHERE id = ${id}
+                      WHERE id = $${values.length + 1}
                       RETURNING ${userPropsSqlQuery}`;
 
-    const result = await db.query(querySql, values);
+    const result = await db.query(querySql, [...values, id]);
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user found`);

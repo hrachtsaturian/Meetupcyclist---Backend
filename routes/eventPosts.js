@@ -30,7 +30,7 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
 
     const { text } = req.body;
 
-    const updatedPost = await EventPost.update(req.params.id, text);
+    const updatedPost = await EventPost.update(post.id, text);
 
     return res.json({ data: updatedPost });
   } catch (err) {
@@ -58,7 +58,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
       throw new UnauthorizedError();
     }
 
-    await EventPost.delete(req.params.id);
+    await EventPost.delete(post.id);
 
     return res.status(204).send();
   } catch (err) {

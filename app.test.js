@@ -30,7 +30,7 @@ describe("POST /locations", () => {
       firstName: "Tommy",
       lastName: "Vercetti",
     });
-    const regularUserToken = regularUserResponse.body.data;
+    const regularUserToken = regularUserResponse.body.data.token
 
     const res = await request(app)
       .post("/locations")
@@ -50,8 +50,8 @@ describe("CORS headers", () => {
   it("should include CORS headers", async () => {
     const res = await request(app).get("/users");
 
-    expect(res.headers["access-control-allow-origin"]).toBe("*");
-    expect(res.headers["access-control-allow-methods"]).toBe("*");
+    expect(res.headers["access-control-allow-origin"]).toBe("https://meetupcyclist.onrender.com");
+    expect(res.headers["access-control-allow-methods"]).toBe("GET, POST, PUT, PATCH, DELETE, OPTIONS");
     expect(res.headers["access-control-allow-headers"]).toBe(
       "Content-Type, Authorization"
     );

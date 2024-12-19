@@ -32,22 +32,6 @@ router.get("/:id", ensureLoggedIn, async function (req, res, next) {
 });
 
 /**
- * GET / => [{ users}, ...]
- *
- * - Authorization required: logged in
- *
- * @returns { id, firstName, lastName, email, bio, pfpUrl, isAdmin, createdAt }
- **/
-router.get("/", ensureLoggedIn, async function (req, res, next) {
-  try {
-    const users = await User.getAll();
-    return res.json({ data: users });
-  } catch (err) {
-    return next(err);
-  }
-});
-
-/**
  * PATCH /[id] { user } => { user }
  *
  * - Data can include:
@@ -106,7 +90,7 @@ router.patch(
         throw new BadRequestError("Cannot deactivate admin");
       }
 
-      const updatedUser = await User.update(req.params.id, {
+      const updatedUser = await User.update(user.id, {
         deactivatedAt: new Date(),
       });
 

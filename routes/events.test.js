@@ -22,7 +22,7 @@ describe("Event Routes", () => {
         firstName: "Tommy",
         lastName: "Vercetti",
       });
-      const userToken = userRes.body.data;
+      const userToken = userRes.body.data.token;
       const resp = await request(app)
         .post("/events")
         .send({
@@ -47,7 +47,7 @@ describe("Event Routes", () => {
         firstName: "Tommy",
         lastName: "Vercetti",
       });
-      const userToken = userRes.body.data;
+      const userToken = userRes.body.data.token;
       const resp = await request(app)
         .post("/events")
         .send({
@@ -70,7 +70,7 @@ describe("Event Routes", () => {
         firstName: "Tommy",
         lastName: "Vercetti",
       });
-      const userToken = userRes.body.data;
+      const userToken = userRes.body.data.token;
 
       // event 1
       await request(app)

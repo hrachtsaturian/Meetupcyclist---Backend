@@ -15,7 +15,7 @@ describe("Group Routes", () => {
       lastName: "Vercetti",
     });
 
-    userToken = res.body.data; // assuming JWT token is returned
+    userToken = res.body.data.token; // assuming JWT token is returned
   });
 
   afterAll(async () => {
@@ -94,7 +94,7 @@ describe("Group Routes", () => {
         lastName: "Vercetti",
       });
 
-      const anotherUserToken = anotherUserRes.body.data;
+      const anotherUserToken = anotherUserRes.body.data.token;
       const res = await request(app)
         .patch(`/groups/${groupId}`)
         .set("Authorization", `Bearer ${anotherUserToken}`)
@@ -122,7 +122,7 @@ describe("Group Routes", () => {
         firstName: "Tommy",
         lastName: "Vercetti",
       });
-      const anotherUserToken = anotherUserRes.body.data;
+      const anotherUserToken = anotherUserRes.body.data.token;
       const groupRes = await request(app)
         .post("/groups")
         .set("Authorization", `Bearer ${anotherUserToken}`)
@@ -148,7 +148,7 @@ describe("Group Routes", () => {
         firstName: "Tommy",
         lastName: "Vercetti",
       });
-      const anotherUserToken = anotherUserRes.body.data;
+      const anotherUserToken = anotherUserRes.body.data.token;
       const groupRes = await request(app)
         .post("/groups")
         .set("Authorization", `Bearer ${anotherUserToken}`)
@@ -183,7 +183,7 @@ describe("Group Routes", () => {
         firstName: "Tommy",
         lastName: "Vercetti",
       });
-      const anotherUserToken = anotherUserRes.body.data;
+      const anotherUserToken = anotherUserRes.body.data.token;
       const groupRes = await request(app)
         .post("/groups")
         .set("Authorization", `Bearer ${anotherUserToken}`)

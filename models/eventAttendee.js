@@ -68,9 +68,10 @@ class EventAttendee {
    * Throws NotFoundError if not found.
    */
   static async remove(userId, eventId) {
-    const querySql = `DELETE FROM event_attendees WHERE user_id = ${userId} AND event_id = ${eventId}`;
+    const querySql = `DELETE FROM event_attendees WHERE user_id = $1 AND event_id = $2`;
+    const values = [userId, eventId];
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, values);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No attendance found`);

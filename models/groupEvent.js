@@ -18,7 +18,8 @@ class GroupEvent {
    **/
   static async get(groupId) {
     const result = await db.query(
-      `SELECT ${groupEventPropsForUpdateSqlQuery} FROM group_events WHERE group_id=${groupId}`
+      `SELECT ${groupEventPropsForUpdateSqlQuery} FROM group_events WHERE group_id=$1`,
+      [groupId]
     );
     const groupEvents = result.rows;
 
@@ -50,9 +51,10 @@ class GroupEvent {
    * Throws NotFoundError if not found.
    */
   static async remove(eventId, groupId) {
-    const querySql = `DELETE FROM group_events WHERE event_id = ${eventId} AND group_id = ${groupId}`;
+    const querySql = `DELETE FROM group_events WHERE event_id = $1 AND group_id = $2`;
+    const values = [eventId, groupId];
 
-    const result = await db.query(querySql);
+    const result = await db.query(querySql, values);
 
     if (result.rowCount === 0) {
       throw new NotFoundError(`No group event found`);

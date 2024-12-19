@@ -144,7 +144,7 @@ router.patch("/:id", ensureLoggedIn, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const updatedEvent = await Event.update(req.params.id, req.body);
+    const updatedEvent = await Event.update(event.id, req.body);
     return res.json({ data: updatedEvent });
   } catch (err) {
     return next(err);
@@ -167,7 +167,7 @@ router.delete("/:id", ensureLoggedIn, async function (req, res, next) {
     const isAdmin = res.locals.user.isAdmin;
 
     if (isEventOrganizer || isAdmin) {
-      await Event.delete(req.params.id);
+      await Event.delete(event.id);
       return res.status(204).send();
     }
 
@@ -194,7 +194,7 @@ router.post("/:id/attendance", ensureLoggedIn, async function (req, res, next) {
 
     const attending = await EventAttendee.add(
       res.locals.user.id,
-      req.params.id
+      event.id
     );
     return res.json({ data: attending });
   } catch (err) {
@@ -219,7 +219,7 @@ router.delete(
         throw new NotFoundError();
       }
 
-      await EventAttendee.remove(res.locals.user.id, req.params.id);
+      await EventAttendee.remove(res.locals.user.id, event.id);
       return res.status(204).send();
     } catch (err) {
       return next(err);
@@ -242,7 +242,7 @@ router.get("/:id/attendees", ensureLoggedIn, async function (req, res, next) {
     if (!event) {
       throw new NotFoundError();
     }
-    const eventAttendees = await EventAttendee.get(id, res.locals.user.id);
+    const eventAttendees = await EventAttendee.get(event.id, res.locals.user.id);
 
     return res.json({ data: eventAttendees });
   } catch (err) {
@@ -269,7 +269,7 @@ router.post("/:id/posts", ensureLoggedIn, async function (req, res, next) {
 
     const post = await EventPost.create(
       res.locals.user.id,
-      req.params.id,
+      event.id,
       text
     );
     return res.json({ data: post });
@@ -294,7 +294,7 @@ router.get("/:id/posts", ensureLoggedIn, async function (req, res, next) {
     }
 
     // fetching all the posts
-    const posts = await EventPost.getAll(req.params.id);
+    const posts = await EventPost.getAll(event.id);
 
     return res.json({ data: posts });
   } catch (err) {
@@ -317,7 +317,7 @@ router.post("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    const save = await EventSave.add(res.locals.user.id, req.params.id);
+    const save = await EventSave.add(res.locals.user.id, event.id);
     return res.json({ data: save });
   } catch (err) {
     return next(err);
@@ -339,7 +339,7 @@ router.delete("/:id/saved", ensureLoggedIn, async function (req, res, next) {
       throw new NotFoundError();
     }
 
-    await EventSave.remove(res.locals.user.id, req.params.id);
+    await EventSave.remove(res.locals.user.id, event.id);
     return res.status(204).send();
   } catch (err) {
     return next(err);
